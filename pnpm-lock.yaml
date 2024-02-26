@@ -26,6 +26,9 @@ dependencies:
   polygon:
     specifier: ^1.0.2
     version: 1.0.2
+  rainbowvis.js:
+    specifier: ^1.1.1
+    version: 1.1.1
   react:
     specifier: 18.2.0
     version: 18.2.0
@@ -8670,6 +8673,10 @@ packages:
     resolution: {integrity: sha512-Sq4CW4QhwOHE8ucn6J34MqtZCeWFP2aQSmrlroYgqAV1PjStIhJXxYuTgUIfkEk7zTLjmIjLmU5q+fbD1NnOJA==}
     dependencies:
       performance-now: 2.1.0
+    dev: false
+
+  /rainbowvis.js@1.1.1:
+    resolution: {integrity: sha512-/sFEGIfTRsGnVhNSVRWytNMSXadyqcDWW6LLoQs2EWg3R0IZylHp05/XjkqeG4gn0kSp3UE2M8uCPseahcHtuA==}
     dev: false
 
   /randombytes@2.1.0:

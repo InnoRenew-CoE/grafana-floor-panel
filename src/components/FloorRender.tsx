@@ -1,5 +1,6 @@
 import {CanvasElement, CanvasElementType, GridPosition, Line, Point2D, Room} from "../@types/Graphics";
 import Polygon from "polygon";
+import Rainbow from "rainbowvis.js";
 
 export let interval;
 
@@ -8,27 +9,33 @@ export class FloorRenderer {
     ctx: CanvasRenderingContext2D;
     interval: number = 0;
     displayMeasurements: boolean = false;
+    rainbow: Rainbow;
 
     centerPosition: Point2D = {x: 0, y: 0}
     canvasOffset: Point2D = {x: 0, y: 0}
 
-    constructor(canvas: HTMLCanvasElement, objects: [CanvasElement] = [], rooms: [Room] = []) {
+    constructor(canvas: HTMLCanvasElement, objects: [CanvasElement] = [], rooms: [Room] = [], colors: [string] = []) {
         this.canvas = canvas;
+        this.rainbow = new Rainbow();
         this.ctx = canvas.getContext("2d")!!;
         this.objects = objects;
         this.rooms = rooms;
         console.log(`Floor Renderer constructor! ${this.canvas} ... ${this.ctx}`)
-        /*
+
         let currentSign = 1;
         clearInterval(interval);
         interval = setInterval(() => {
-            const room = this.rooms[0];
-            if (room.quality >= 255) currentSign = -1;
+            const room = this.rooms[Math.floor(Math.random() * this.rooms.length)];
+            if (room.quality >= 100) currentSign = -1;
             if (room.quality <= 0) currentSign = 1;
-            this.rooms[0].quality += currentSign;
+            room.quality += Math.round(currentSign * Math.random());
             this.redraw()
         }, 10)
-        */
+
+    }
+
+    public setColors(colors: [string]) {
+        this.rainbow.setSpectrumByArray(colors);
     }
 
     public dpiFix(windowWidth: number, windowHeight: number) {
@@ -155,8 +162,10 @@ export class FloorRenderer {
         const transformedStartPoint = this.transformFakeToDrawable(startPoint);
         const transformedLastPoint = this.transformFakeToDrawable(lastPoint);
         const grd = this.ctx.createLinearGradient(transformedStartPoint.x, transformedStartPoint!.y, transformedLastPoint.x, transformedLastPoint.y)
-        grd.addColorStop(0, `rgb(${room.quality}, ${Math.abs(255 - room.quality)}, 0, 1`)
-        grd.addColorStop(1, `rgb(${room.quality}, ${Math.abs(255 - room.quality)}, 100, 1`)
+
+        grd.addColorStop(0, `#${this.rainbow.colorAt(room.quality - 10)}`)
+        grd.addColorStop(0.5, `#${this.rainbow.colorAt(room.quality)}`)
+        grd.addColorStop(1, `#${this.rainbow.colorAt(room.quality + 10)}`)
         this.ctx.fillStyle = grd
         this.ctx.beginPath()
         this.ctx.moveTo(transformedStartPoint.x, transformedStartPoint.y)
@@ -222,8 +231,8 @@ export class FloorRenderer {
             if (canvasObject.type === CanvasElementType.Door) {
                 const doorGradient = ctx.createLinearGradient(objectCenter.x, objectCenter.y,
                     objectCenter.x + 2 * this.pointSize, objectCenter.y + 2 * this.pointSize)
-                doorGradient.addColorStop(0, "rgba(255,126,15,0.28)")
-                doorGradient.addColorStop(1, "rgb(255,178,112)")
+                doorGradient.addColorStop(0, "rgba(255,255,255,0.28)")
+                doorGradient.addColorStop(1, "rgb(255,255,255)")
                 ctx.strokeStyle = "black";
                 ctx.strokeStyle = doorGradient
                 ctx.lineWidth = this.pointSize * 0.15
@@ -235,7 +244,7 @@ export class FloorRenderer {
                 ctx.setLineDash([])
                 ctx.lineWidth = this.lineWidth
                 ctx.lineCap = "square"
-                ctx.strokeStyle = "rgb(255,178,112)"
+                ctx.strokeStyle = "rgb(255,255,255)"
                 ctx.beginPath()
                 ctx.moveTo(objectCenter.x, objectCenter.y);
                 ctx.lineTo(objectCenter.x + xAdd * objectDistance * this.pointSize, objectCenter.y + yAdd * objectDistance * this.pointSize);

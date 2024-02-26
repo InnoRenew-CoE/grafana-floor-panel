@@ -1,40 +1,19 @@
-import { PanelPlugin } from '@grafana/data';
-import { SimpleOptions } from './types';
-import { SimplePanel } from './components/SimplePanel';
+import {PanelPlugin} from '@grafana/data';
+import {SimpleOptions} from './types';
+import {SimplePanel} from './components/SimplePanel';
 
-export const plugin = new PanelPlugin<SimpleOptions>(SimplePanel).setPanelOptions((builder) => {
-  return builder
-    .addTextInput({
-      path: 'text',
-      name: 'Simple text option',
-      description: 'Description of panel option',
-      defaultValue: 'Default value of text input option',
+export const plugin = new PanelPlugin<SimpleOptions>(SimplePanel)
+    .useFieldConfig()
+    .setPanelOptions(builder => {
+        builder.addTextInput({
+            path: 'json',
+            settings: {
+                placeholder: "Floor Plan JSON"
+            },
+            name: 'Floor plan JSON',
+            description: 'JSON for the floor plan.',
+            category: ["Floor Plan"],
+            defaultValue: '{"rooms": [], "objects": []}',
+        })
     })
-    .addBooleanSwitch({
-      path: 'showSeriesCount',
-      name: 'Show series counter',
-      defaultValue: false,
-    })
-    .addRadio({
-      path: 'seriesCountSize',
-      defaultValue: 'sm',
-      name: 'Series counter size',
-      settings: {
-        options: [
-          {
-            value: 'sm',
-            label: 'Small',
-          },
-          {
-            value: 'md',
-            label: 'Medium',
-          },
-          {
-            value: 'lg',
-            label: 'Large',
-          },
-        ],
-      },
-      showIf: (config) => config.showSeriesCount,
-    });
-});
+;

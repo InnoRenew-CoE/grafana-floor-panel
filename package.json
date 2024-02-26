@@ -66,6 +66,7 @@
     "@grafana/ui": "10.3.3",
     "@types/polygon": "^1.0.5",
     "polygon": "^1.0.2",
+    "rainbowvis.js": "^1.1.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-svelte": "^1.0.2",
