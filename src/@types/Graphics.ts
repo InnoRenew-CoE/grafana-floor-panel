@@ -13,7 +13,7 @@ export type Room = CanvasElement & {
 
 export type CanvasElement = {
     position: Point2D,
-    rotation: number,
+    rotation: Number,
     type: CanvasElementType
 }
 
@@ -37,6 +37,10 @@ export enum GridPosition {
 
 export enum CanvasElementType {
     Door = "Door",
+    DoubleDoor = "DoubleDoor",
+    Desk = "Desk",
+    ParkingSpace = "ParkingSpace",
+    Stairs = "Stairs",
     Window = "Window",
     Room = "Room"
 }

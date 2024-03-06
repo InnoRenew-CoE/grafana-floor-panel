@@ -1,40 +1,54 @@
 import {CanvasElement, CanvasElementType, GridPosition, Line, Point2D, Room} from "../@types/Graphics";
 import Polygon from "polygon";
 import Rainbow from "rainbowvis.js";
+import WindowImage from "img/window-path.svg"
+import DoubleDoorsImage from "img/double-doors.svg"
+import SingleDoorsImage from "img/single-door.svg"
 
 export let interval;
 
 export class FloorRenderer {
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
-    interval: number = 0;
-    displayMeasurements: boolean = false;
+    interval = 0;
+    displayMeasurements = false;
     rainbow: Rainbow;
+    windowImage = new Image();
+    singleDoorImage = new Image();
+    doubleDoorImage = new Image();
 
     centerPosition: Point2D = {x: 0, y: 0}
     canvasOffset: Point2D = {x: 0, y: 0}
 
-    constructor(canvas: HTMLCanvasElement, objects: [CanvasElement] = [], rooms: [Room] = [], colors: [string] = []) {
+    constructor(canvas: HTMLCanvasElement, objects: CanvasElement[] = [], rooms: Room[] = [], colors: string[] = []) {
         this.canvas = canvas;
         this.rainbow = new Rainbow();
         this.ctx = canvas.getContext("2d")!!;
         this.objects = objects;
         this.rooms = rooms;
-        console.log(`Floor Renderer constructor! ${this.canvas} ... ${this.ctx}`)
+        this.windowImage.src = `${WindowImage}`;
+        this.singleDoorImage.src = `${SingleDoorsImage}`;
+        this.doubleDoorImage.src = `${DoubleDoorsImage}`;
+
+        console.log(`Floor Renderers constructor! ${this.canvas} ... ${this.ctx}`)
 
         let currentSign = 1;
         clearInterval(interval);
         interval = setInterval(() => {
             const room = this.rooms[Math.floor(Math.random() * this.rooms.length)];
-            if (room.quality >= 100) currentSign = -1;
-            if (room.quality <= 0) currentSign = 1;
+            if (!room) return;
+            if (room.quality >= 100) {
+                currentSign = -1
+            }
+            if (room.quality <= 0) {
+                currentSign = 1
+            }
             room.quality += Math.round(currentSign * Math.random());
             this.redraw()
-        }, 10)
-
+        }, 50)
     }
 
-    public setColors(colors: [string]) {
+    public setColors(colors: string[]) {
         this.rainbow.setSpectrumByArray(colors);
     }
 
@@ -219,7 +233,7 @@ export class FloorRenderer {
         let ctx = this.ctx
         if (!ctx) return;
         for (let canvasObject of this.objects) {
-            const objectDistance = 2;
+            const objectDistance = canvasObject.type === CanvasElementType.Stairs ? 6 : 2.5;
             let xAdd = 0;
             let yAdd = 0;
             if (canvasObject.rotation == 0) xAdd = 1;
@@ -228,49 +242,33 @@ export class FloorRenderer {
             if (canvasObject.rotation == 1.5) yAdd = -1;
             const objectCenter = this.transformFakeToDrawable(canvasObject.position)
             const rotation = canvasObject.rotation
-            if (canvasObject.type === CanvasElementType.Door) {
-                const doorGradient = ctx.createLinearGradient(objectCenter.x, objectCenter.y,
-                    objectCenter.x + 2 * this.pointSize, objectCenter.y + 2 * this.pointSize)
-                doorGradient.addColorStop(0, "rgba(255,255,255,0.28)")
-                doorGradient.addColorStop(1, "rgb(255,255,255)")
-                ctx.strokeStyle = "black";
-                ctx.strokeStyle = doorGradient
-                ctx.lineWidth = this.pointSize * 0.15
-                ctx.setLineDash([this.lineWidth])
-                ctx.beginPath()
-                ctx.moveTo(objectCenter.x, objectCenter.y)
-                ctx.arc(objectCenter.x, objectCenter.y, 2 * this.pointSize, Math.PI * (rotation - 0.5), Math.PI * rotation)
-                ctx.stroke()
-                ctx.setLineDash([])
-                ctx.lineWidth = this.lineWidth
-                ctx.lineCap = "square"
-                ctx.strokeStyle = "rgb(255,255,255)"
-                ctx.beginPath()
-                ctx.moveTo(objectCenter.x, objectCenter.y);
-                ctx.lineTo(objectCenter.x + xAdd * objectDistance * this.pointSize, objectCenter.y + yAdd * objectDistance * this.pointSize);
-                ctx.stroke()
-            } else if (canvasObject.type === CanvasElementType.Window) {
-                const windowWidth = 0.25;
-                const width = (xAdd !== 0 ? objectDistance : windowWidth) * this.pointSize;
-                const height = (yAdd !== 0 ? objectDistance : windowWidth) * this.pointSize
-                const windowGradient = ctx.createLinearGradient(objectCenter.x, objectCenter.y, objectCenter.x + width, objectCenter.y + height)
-                windowGradient.addColorStop(0, "rgb(73,157,225)")
-                windowGradient.addColorStop(1, "rgb(73,225,188)")
-                ctx.lineCap = "square"
-                ctx.strokeStyle = "white";
-                ctx.lineWidth = this.lineWidth / 2;
-                ctx.strokeRect(
-                    objectCenter.x - this.lineWidth / 2, objectCenter.y - this.lineWidth / 2,
-                    width, height
-                );
-                ctx.fillStyle = windowGradient
-                ctx.fillRect(
-                    objectCenter.x - this.lineWidth / 2, objectCenter.y - this.lineWidth / 2,
-                    (xAdd !== 0 ? objectDistance : windowWidth) * this.pointSize,
-                    (yAdd !== 0 ? objectDistance : windowWidth) * this.pointSize
-                );
-
+            ctx.save()
+            ctx.translate(
+                objectCenter.x - this.pointSize,
+                objectCenter.y - this.pointSize
+            );
+            ctx.rotate(Math.PI * rotation);
+            let image = this.singleDoorImage;
+            switch (canvasObject.type) {
+                case CanvasElementType.Door:
+                    image = this.singleDoorImage;
+                    break;
+                case CanvasElementType.Window:
+                    image = this.windowImage;
+                    break;
+                case CanvasElementType.DoubleDoor:
+                    image = this.doubleDoorImage;
+                    break;
+                case CanvasElementType.Stairs:
+                    // image = this.stairsImage;
+                    break;
             }
+            ctx.drawImage(image,
+                -objectDistance / 2 * this.pointSize,
+                -objectDistance / 2 * this.pointSize,
+                objectDistance * this.pointSize,
+                objectDistance * this.pointSize);
+            ctx.restore()
         }
     }
 
