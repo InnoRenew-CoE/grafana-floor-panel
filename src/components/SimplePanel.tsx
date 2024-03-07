@@ -2936,7 +2936,7 @@ const data: SensorData[] = sample_data.series.reduce((data, series) => {
 }, []);
 // console.log(data);
 
-export const SimplePanel: React.FC<Props> = ({currentOptions, options, data, width, height, fieldConfig, plugin}) => {
+export const SimplePanel: React.FC<Props> = ({options, data, width, height, fieldConfig}) => {
     const fieldColor = fieldConfig.defaults.color || {mode: FieldColorModeId.ContinuousGrYlRd};
     const fieldColorMode = fieldColorModeRegistry.get(fieldColor.mode);
 

@@ -31,7 +31,11 @@ export const RoomSensorPicker: React.FC = ({item, value, onChange, context}: Sta
 
     const update = (room, sensor) => {
         console.log(`${room} set to listen to ${sensor} --- ${value.sensorMappings}`)
-        map.set(room, sensor);
+        if (!sensor) {
+            map.delete(room);
+        } else {
+            map.set(room, sensor);
+        }
         const stringified = JSON.stringify(Array.from(map.entries()))
         onChange({...value, sensorMappings: stringified});
     }
@@ -45,15 +49,15 @@ export const RoomSensorPicker: React.FC = ({item, value, onChange, context}: Sta
             </thead>
             <tbody>
             {roomNames.map(name => {
-                const existingMapping = sensorNames.find(x => map.get(name) === x.label);
+                const existingMapping = sensorNames.find(x => map.get(name) === x.label) || null;
                 return (<tr>
                     <td style={{padding: "0.5em 0"}}>{name}</td>
                     <td style={{padding: "0.5em 0"}}>
                         <div>
-                            <div>{JSON.stringify(existingMapping)}</div>
                             <Select
-                                value={existingMapping?.value}
-                                onChange={e => (update(name, e.target.value))}
+                                value={existingMapping}
+                                isClearable={true}
+                                onChange={e => update(name, e?.value)}
                                 options={sensorNames}>
                             </Select>
                         </div>
