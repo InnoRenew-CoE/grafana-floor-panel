@@ -7,6 +7,25 @@ import {FloorRenderer} from "./FloorRender";
 import {CanvasElement, Room} from "../@types/Graphics";
 import {Measurement, QueryData, SensorData} from "../@types/QueryData";
 
+/*
+site_results = from(bucket: "iaq")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r["_measurement"] == "iaq_data")
+  |> filter(fn: (r) => r["building"] == "innorenew")
+
+sensor_ids = site_results
+  |> map(fn: (r) => ({r with _value: string(v:r._value)}))
+  |> keep(columns: ["_time", "_value", "_field", "sensor_id"])
+
+mapped_sensors = sensor_ids
+  |> truncateTimeColumn(unit: 1m)
+  |> pivot(rowKey: ["_time", "_field"], columnKey: ["sensor_id"], valueColumn: "_value")
+  |> group(columns: ["_time"])
+
+mapped_sensors
+
+ */
+
 export const sample_data: QueryData = JSON.parse<QueryData>(`{
   "state": "Done",
   "series": [
@@ -2939,6 +2958,7 @@ const data: SensorData[] = sample_data.series.reduce((data, series) => {
 export const SimplePanel: React.FC<Props> = ({options, data, width, height, fieldConfig}) => {
     const fieldColor = fieldConfig.defaults.color || {mode: FieldColorModeId.ContinuousGrYlRd};
     const fieldColorMode = fieldColorModeRegistry.get(fieldColor.mode);
+    console.log(`Panel Data: ` + JSON.stringify(data?.series))
 
     let colors = ["green", "orange", "yellow"]
     if (fieldColorMode.getColors) {
