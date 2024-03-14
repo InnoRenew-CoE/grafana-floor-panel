@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {colorManipulator, FieldColorModeId, fieldColorModeRegistry, PanelProps} from '@grafana/data';
 import {SimpleOptions} from 'types';
 import {css, cx} from '@emotion/css';
@@ -2955,11 +2955,11 @@ const data: SensorData[] = sample_data.series.reduce((data, series) => {
     })];
 }, []);
 // console.log(data);
-
 export const SimplePanel: React.FC<Props> = ({options, data, width, height, fieldConfig}) => {
     const fieldColor = fieldConfig.defaults.color || {mode: FieldColorModeId.ContinuousGrYlRd};
     const fieldColorMode = fieldColorModeRegistry.get(fieldColor.mode);
-
+    const [roomMetrics, setRoomMetrics] = useState(new Map<string, number>());
+    const [interval, setRedrawInterval] = useState(0);
     const sensorData: SensorData[] = (data?.series || sample_data.series).reduce((data, series) => {
         const fields = series.fields;
         const fieldOrder = fields.find(x => x.name === "_field")?.values?.buffer;
@@ -2994,14 +2994,13 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
         const co2Index = Math.min(6, Math.round(co2 / 400)) - 1; // 1 - 6
         const vocIndex = Math.min(6, Math.round(voc / 50)) - 1; // 1 - 6
         const best = 0
-        const worst = 10
-        const total = co2Index + vocIndex;
+        const worst = 6
+        const total = co2Index;
         const aqi = Math.min(Math.max(0, 100.0 - (100 * (total / worst))), 100)
-        // console.log(`CO2: ${co2} => ${co2Index}, ${voc} => ${vocIndex} ... AQI: ${aqi}`)
+        console.log(`CO2: ${co2} => ${co2Index}, ${voc} => ${vocIndex} ... AQI: ${aqi}`)
         return aqi ?? 0.0;
     }
 
-    console.log(mappedByTime);
     let colors = ["green", "orange", "yellow"]
     if (fieldColorMode.getColors) {
         colors = fieldColorMode.getColors(useTheme2());
@@ -3016,7 +3015,10 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
             const data: { rooms: Room[], objects: CanvasElement[] } = JSON.parse(options["json"]);
             floorRenderer.rooms = data.rooms;
             floorRenderer.objects = data.objects;
-            floorRenderer.redraw()
+            console.log(roomMetrics);
+            data.rooms.forEach(room => {
+                room.quality = roomMetrics.get(room.name);
+            });
             floorRenderer.setColors(colors);
             const points = floorRenderer.rooms.flatMap(room => room.lines.flatMap(line => [line.end, line.start]))
 
@@ -3049,8 +3051,10 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
             floorRenderer.lineWidth = ratio;
             floorRenderer.pointSize = 20 * ratio;
             const roomMap: Map<string, string> = new Map(options?.sensorMappings ? JSON.parse(options.sensorMappings) : [])
-            console.log(roomMap);
-            mappedByTime.forEach((sensorMap, time) => {
+            const times = Array.from(mappedByTime.keys()).reverse();
+            const latestTime = times[0];
+            const oneBefore = times[1];
+            [mappedByTime.get(oneBefore), mappedByTime.get(latestTime)].forEach((sensorMap, time) => {
                 sensorMap.forEach((value, key) => {
                     const rh = value.get("RH");
                     const co2 = value.get("co2");
@@ -3059,16 +3063,29 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
                     // "RH", "abs_humidity", "co2", "dew_point", "luminance", "temperature", "turned_on", "voc_acc", "voc_eq_co2", "voc_index"
                     const roomName = roomMap.get(key);
                     const iaq = calculateIAQ(toNumber(co2), toNumber(temp), toNumber(rh), toNumber(voc_index))
-                    const room = data.rooms.find(x => x.name === roomName);
+                    const room = floorRenderer.rooms.find(x => x.name === roomName);
                     if (room) {
+                        let interval;
+                        roomMetrics.set(roomName, iaq);
                         room.quality = iaq;
                     }
                 });
             })
-            floorRenderer.redraw();
 
+            floorRenderer.redraw()
+            /*
+            setInterval(() => {
+                floorRenderer.rooms.so(room => {
+                    const iaq = roomMetrics.get(room.name);
+                    if (room.quality !== iaq) {
+                        room.quality += iaq > room.quality ? 1 : -1;
+                    }
+                })
+                floorRenderer.redraw();
+            }, 100)
+             */
         }
-    }, [width, height, colors, options, mappedByTime])
+    }, [width, height, colors, options, mappedByTime, roomMetrics, interval])
     const styles = useStyles2(getStyles);
 
     return (
