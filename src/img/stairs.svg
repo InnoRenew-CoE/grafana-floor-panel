@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 -200 500 900" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <linearGradient gradientUnits="userSpaceOnUse" x1="250" y1="0" x2="250" y2="500" id="gradient-1" gradientTransform="matrix(1, 0, 0, 1.600308, 0, -100.153763)">
+      <stop offset="0" style="stop-color: rgba(255, 255, 255, 0.557);"/>
+      <stop offset="1" style="stop-color: rgba(255, 255, 255, 0);"/>
+    </linearGradient>
+  </defs>
+  <rect x="100" width="300" height="800.154" style="stroke-width: 3px; stroke: rgba(0, 0, 0, 0.08); fill: url('#gradient-1');" y="-100.154" transform="matrix(1, 0, 0, 1, 0, -1.1368683772161603e-13)"/>
+  <path style="fill: rgb(216, 216, 216); stroke-width: 10px; stroke: rgba(0, 0, 0, 0.443);" d="M 397.188 399.769 L 100 400" transform="matrix(1, 0, 0, 1, 0, -1.1368683772161603e-13)"/>
+  <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 10px;" d="M 400.349 99.44 L 100 100" transform="matrix(1, 0, 0, 1, 0, -1.1368683772161603e-13)"/>
+  <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 10px;" d="M 82.363 -200 L 84.266 700" transform="matrix(1, 0, 0, 1, 0, -1.1368683772161603e-13)"/>
+  <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 10px;" d="M 413.556 -198.304 L 415.46 700" transform="matrix(1, 0, 0, 1, 0, -1.1368683772161603e-13)"/>
+  <path d="M 220.114 452.385 H 430.316 L 430.316 441.504 L 503.756 457.385 L 430.316 473.266 L 430.316 462.385 H 220.114 V 452.385 Z" style="stroke: rgb(0, 0, 0); stroke-linejoin: round; stroke-linecap: round;" transform="matrix(-0.010336000472307205, -0.9999470114707947, 0.9999470114707947, -0.010336000472307205, -253.37770080566406, 408.4671936035156)" bx:shape="arrow 220.114 441.504 283.642 31.762 10 73.44 0 1@eaeee396"/>
+  <path d="M -214.83 -422.496 H 2.922 L 2.922 -433.586 L 69.446 -417.494 L 2.922 -401.402 L 2.922 -412.493 H -214.83 V -422.496 Z" style="stroke: rgb(0, 0, 0);" transform="matrix(0.000010000000656873453, 1, 1, -0.000010000000656873453, 717.490966796875, 530.5452880859375)" bx:shape="arrow -214.83 -433.586 284.276 32.184 10.003 66.524 0 1@cb337be1"/>
+  <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0);" d="M 198.24 278.882 L 200 447.056" transform="matrix(1, 0, 0, 1, 0, -1.1368683772161603e-13)"/>
+  <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 10px; transform-origin: 300px 62.046875px;" d="M 300 -99.991 L 300 224.109" transform="matrix(-1, 0, 0, -0.999999551006, 0, 0.014310351253)"/>
+  <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 10px; transform-origin: 200px 439.4375px;" d="M 200 278.893 L 200 600.012" transform="matrix(-1, 0, 0, -1.000000226581, 0, 0.013109090308)"/>
+  <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 10px; transform-origin: 99.921875px 273.234375px;" d="M -5.073 267.601 L 99.924 267.598" transform="matrix(-1, 0, 0, -1, 0.028244018474, 0.001220702754)"/>
+  <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 10px; transform-origin: 296.40625px -64.265625px;" d="M 192.485 -350.369 L 296.429 -350.522" transform="matrix(-1, 0, 0, -0.999999999999, 0.013488769578, -0.012756347374)"/>
+  <path style="fill: rgb(216, 216, 216); stroke-width: 10px; stroke: rgb(0, 0, 0);" d="M 400.349 347.825 L 100 241.637" transform="matrix(1, 0, 0, 1, 0, -1.1368683772161603e-13)"/>
+  <path style="fill: rgb(216, 216, 216); stroke-width: 10px; stroke: rgb(0, 0, 0);" d="M 397.534 259.85 L 100 151.162" transform="matrix(1, 0, 0, 1, 0, -1.1368683772161603e-13)"/>
+  <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 10px;" d="M 400.349 0 L 100 0.56" transform="matrix(1, 0, 0, 1, 0, -1.1368683772161603e-13)"/>
+  <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 10px;" d="M 397.188 -100 L 96.839 -99.44" transform="matrix(1, 0, 0, 1, 0, -1.1368683772161603e-13)"/>
+  <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 10px;" d="M 397.188 500 L 96.839 500.56" transform="matrix(1, 0, 0, 1, 0, -1.1368683772161603e-13)"/>
+  <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 10px;" d="M 397.188 599.435 L 96.839 599.995" transform="matrix(1, 0, 0, 1, 0, -1.1368683772161603e-13)"/>
+</svg>

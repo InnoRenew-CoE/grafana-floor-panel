@@ -2,7 +2,7 @@
   {
     "refId": "A",
     "meta": {
-      "executedQueryString": "site_results = from(bucket: \"iaq\")\n  |> range(start: 2024-03-11T16:14:50.131Z, stop: 2024-03-11T16:15:50.131Z)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"iaq_data\")\n  |> filter(fn: (r) => r[\"building\"] == \"innorenew\")\n\nsensor_ids = site_results \n  |> map(fn: (r) => ({r with _value: string(v:r._value)}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\", \"sensor_id\"])\n\nmapped_sensors = sensor_ids\n  |> truncateTimeColumn(unit: 1m)\n  |> pivot(rowKey: [\"_time\", \"_field\"], columnKey: [\"sensor_id\"], valueColumn: \"_value\")\n  |> group(columns: [\"_time\"])\n\nmapped_sensors\n"
+      "executedQueryString": "site_results = from(bucket: \"iaq\")\n  |> range(start: 2024-03-14T11:55:11.111Z, stop: 2024-03-14T11:56:11.111Z)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"iaq_data\")\n  |> filter(fn: (r) => r[\"building\"] == \"innorenew\")\n\nsensor_ids = site_results \n  |> map(fn: (r) => ({r with _value: string(v:r._value)}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\", \"sensor_id\"])\n\nmapped_sensors = sensor_ids\n  |> truncateTimeColumn(unit: 1m)\n  |> pivot(rowKey: [\"_time\", \"_field\"], columnKey: [\"sensor_id\"], valueColumn: \"_value\")\n  |> group(columns: [\"_time\"])\n\nmapped_sensors\n"
     },
     "fields": [
       {
@@ -13,7 +13,7 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:14:00 +0000 UTC"
+          "_time": "2024-03-14 11:55:00 +0000 UTC"
         },
         "config": {},
         "values": [
@@ -39,20 +39,20 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:14:00 +0000 UTC"
+          "_time": "2024-03-14 11:55:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
+          "45.2567",
+          "10.7946",
+          "734.2408",
+          "12.9355",
+          "747.5904",
+          "25.6735",
+          "10110123",
+          "NULL",
+          "754",
+          "754"
         ],
         "entities": {},
         "state": null
@@ -65,20 +65,20 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:14:00 +0000 UTC"
+          "_time": "2024-03-14 11:55:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
+          "33.5836",
+          "8.5571",
+          "470.9527",
+          "9.488",
+          "27.9936",
+          "26.8591",
+          "12335084",
+          "NULL",
+          "450",
+          "450"
         ],
         "entities": {},
         "state": null
@@ -91,20 +91,20 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:14:00 +0000 UTC"
+          "_time": "2024-03-14 11:55:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
+          "34.3923",
+          "7.7815",
+          "462.8507",
+          "7.9759",
+          "34.4448",
+          "24.7335",
+          "5362954",
+          "NULL",
+          "723",
+          "723"
         ],
         "entities": {},
         "state": null
@@ -117,20 +117,20 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:14:00 +0000 UTC"
+          "_time": "2024-03-14 11:55:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
+          "36.1044",
+          "7.698",
+          "440.0487",
+          "7.7652",
+          "46.4256",
+          "23.6841",
+          "148294",
+          "NULL",
+          "400",
+          "400"
         ],
         "entities": {},
         "state": null
@@ -143,20 +143,20 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:14:00 +0000 UTC"
+          "_time": "2024-03-14 11:55:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
+          "34.9874",
+          "8.0433",
+          "475.9273",
+          "8.4779",
+          "23.04",
+          "25.0166",
+          "30998428",
+          "NULL",
+          "412",
+          "412"
         ],
         "entities": {},
         "state": null
@@ -169,20 +169,20 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:14:00 +0000 UTC"
+          "_time": "2024-03-14 11:55:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          "53.5332",
-          "7.8766",
-          "446.1115",
-          "7.7837",
-          "43.6608",
-          "17.3153",
-          "7517042",
+          "45.8808",
+          "7.1401",
+          "441.3975",
+          "6.3963",
+          "66.6432",
+          "18.258",
+          "7760660",
           "NULL",
-          "459",
-          "459"
+          "400",
+          "400"
         ],
         "entities": {},
         "state": null
@@ -195,20 +195,46 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:14:00 +0000 UTC"
+          "_time": "2024-03-14 11:55:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
+          "37.8607",
+          "7.3388",
+          "437.5319",
+          "6.983",
+          "3.5712",
+          "22.0178",
+          "16514891",
+          "NULL",
+          "614",
+          "614"
+        ],
+        "entities": {},
+        "state": null
+      },
+      {
+        "name": "ir-07",
+        "type": "string",
+        "typeInfo": {
+          "frame": "string",
+          "nullable": true
+        },
+        "labels": {
+          "_time": "2024-03-14 11:55:00 +0000 UTC"
+        },
+        "config": {},
+        "values": [
+          "33.3043",
+          "7.0559",
+          "436.2436",
+          "6.4864",
+          "24.1344",
+          "23.5719",
+          "12335085",
+          "NULL",
+          "709",
+          "709"
         ],
         "entities": {},
         "state": null
@@ -227,7 +253,7 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:15:00 +0000 UTC"
+          "_time": "2024-03-14 11:56:00 +0000 UTC"
         },
         "config": {},
         "values": [
@@ -253,20 +279,20 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:15:00 +0000 UTC"
+          "_time": "2024-03-14 11:56:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          "46.2226",
-          "9.9123",
-          "496.1455",
-          "11.541",
-          "133.1712",
-          "23.7855",
-          "9866510",
+          "45.2842",
+          "10.8092",
+          "738.469",
+          "12.9569",
+          "768.2688",
+          "25.6868",
+          "10110174",
           "NULL",
-          "567",
-          "567"
+          "763",
+          "763"
         ],
         "entities": {},
         "state": null
@@ -279,20 +305,20 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:15:00 +0000 UTC"
+          "_time": "2024-03-14 11:56:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          "38.7488",
-          "8.7923",
-          "476.7282",
-          "9.7889",
-          "5.8752",
-          "24.7843",
-          "12091464",
-          "NULL",
-          "761",
-          "761"
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
         ],
         "entities": {},
         "state": null
@@ -305,20 +331,20 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:15:00 +0000 UTC"
+          "_time": "2024-03-14 11:56:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          "36.8048",
-          "8.3877",
-          "484.316",
-          "9.0912",
-          "0",
-          "24.8617",
-          "5119340",
-          "NULL",
-          "654",
-          "654"
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
         ],
         "entities": {},
         "state": null
@@ -331,20 +357,20 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:15:00 +0000 UTC"
+          "_time": "2024-03-14 11:56:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          "40.4013",
-          "8.5672",
-          "462.8561",
-          "9.3423",
-          "8.0064",
-          "23.5879",
-          "12091440",
-          "NULL",
-          "817",
-          "817"
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
         ],
         "entities": {},
         "state": null
@@ -357,20 +383,20 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:15:00 +0000 UTC"
+          "_time": "2024-03-14 11:56:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          "37.2869",
-          "7.6255",
-          "382.6582",
-          "7.5902",
-          "17.5104",
-          "22.9524",
-          "30754804",
-          "NULL",
-          "1519",
-          "1519"
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
         ],
         "entities": {},
         "state": null
@@ -383,20 +409,20 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:15:00 +0000 UTC"
+          "_time": "2024-03-14 11:56:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          "53.6339",
-          "7.8915",
-          "447.2938",
-          "7.8113",
-          "0.576",
-          "17.3153",
-          "7517092",
+          "45.7115",
+          "7.1137",
+          "440.0409",
+          "6.3425",
+          "66.6432",
+          "18.258",
+          "7760710",
           "NULL",
-          "483",
-          "483"
+          "400",
+          "400"
         ],
         "entities": {},
         "state": null
@@ -409,20 +435,46 @@
           "nullable": true
         },
         "labels": {
-          "_time": "2024-03-11 16:15:00 +0000 UTC"
+          "_time": "2024-03-14 11:56:00 +0000 UTC"
         },
         "config": {},
         "values": [
-          "42.2217",
-          "8.0978",
-          "437.9999",
-          "8.419",
-          "0.1152",
-          "21.8335",
-          "16271270",
-          "NULL",
-          "744",
-          "744"
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "entities": {},
+        "state": null
+      },
+      {
+        "name": "ir-07",
+        "type": "string",
+        "typeInfo": {
+          "frame": "string",
+          "nullable": true
+        },
+        "labels": {
+          "_time": "2024-03-14 11:56:00 +0000 UTC"
+        },
+        "config": {},
+        "values": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
         ],
         "entities": {},
         "state": null

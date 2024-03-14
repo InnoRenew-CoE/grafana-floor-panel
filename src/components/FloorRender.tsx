@@ -4,6 +4,7 @@ import Rainbow from "rainbowvis.js";
 import WindowImage from "img/window-path.svg"
 import DoubleDoorsImage from "img/double-doors.svg"
 import SingleDoorsImage from "img/single-door.svg"
+import StairsImage from "img/stairs.svg"
 
 export let interval;
 
@@ -16,6 +17,7 @@ export class FloorRenderer {
     windowImage = new Image();
     singleDoorImage = new Image();
     doubleDoorImage = new Image();
+    stairsImage = new Image();
 
     centerPosition: Point2D = {x: 0, y: 0}
     canvasOffset: Point2D = {x: 0, y: 0}
@@ -29,11 +31,13 @@ export class FloorRenderer {
         this.windowImage.src = `${WindowImage}`;
         this.singleDoorImage.src = `${SingleDoorsImage}`;
         this.doubleDoorImage.src = `${DoubleDoorsImage}`;
+        this.stairsImage.src = `${StairsImage}`;
 
         console.log(`Floor Renderers constructor! ${this.canvas} ... ${this.ctx}`)
 
         let currentSign = 1;
         clearInterval(interval);
+        /*
         interval = setInterval(() => {
             const room = this.rooms[Math.floor(Math.random() * this.rooms.length)];
             if (!room) return;
@@ -46,6 +50,7 @@ export class FloorRenderer {
             room.quality += Math.round(currentSign * Math.random());
             this.redraw()
         }, 50)
+         */
     }
 
     public setColors(colors: string[]) {
@@ -138,7 +143,7 @@ export class FloorRenderer {
 
     public drawRoom(room: Room) {
         const ctx = this.ctx;
-        this.colorRoom(room)
+        this.colorRoom(room);
         ctx.beginPath()
         room.lines.forEach(line => this.drawLine(line))
         ctx.strokeStyle = "black"
@@ -177,10 +182,12 @@ export class FloorRenderer {
         const transformedLastPoint = this.transformFakeToDrawable(lastPoint);
         const grd = this.ctx.createLinearGradient(transformedStartPoint.x, transformedStartPoint!.y, transformedLastPoint.x, transformedLastPoint.y)
 
-        grd.addColorStop(0, `#${this.rainbow.colorAt(room.quality - 10)}`)
-        grd.addColorStop(0.5, `#${this.rainbow.colorAt(room.quality)}`)
-        grd.addColorStop(1, `#${this.rainbow.colorAt(room.quality + 10)}`)
-        this.ctx.fillStyle = grd
+        if (room.quality > 0) {
+            grd.addColorStop(0, `#${this.rainbow.colorAt(room.quality - 10)}`)
+            grd.addColorStop(0.5, `#${this.rainbow.colorAt(room.quality)}`)
+            grd.addColorStop(1, `#${this.rainbow.colorAt(room.quality + 10)}`)
+        }
+        this.ctx.fillStyle = room.quality > 0 ? grd : "rgba(255,255,255, .1)"
         this.ctx.beginPath()
         this.ctx.moveTo(transformedStartPoint.x, transformedStartPoint.y)
         room.lines.forEach(({start, end}) => {
@@ -260,7 +267,7 @@ export class FloorRenderer {
                     image = this.doubleDoorImage;
                     break;
                 case CanvasElementType.Stairs:
-                    // image = this.stairsImage;
+                    image = this.stairsImage;
                     break;
             }
             ctx.drawImage(image,

@@ -8,13 +8,16 @@ import {Room} from "../@types/Graphics";
 export const RoomSensorPicker: React.FC = ({item, value, onChange, context}: StandardEditorProps<SimpleOptions>) => {
     const optionsJson = context?.options?.json;
     const series = (context?.data ?? []) as Series[];
-    if (!series || !optionsJson) {
+    console.log(series);
+    if (!series || !optionsJson || series.length === 0) {
         return <div>No sensors detected yet!</div>
     }
-    console.log(`Context data: ${JSON.stringify(context?.data)}`);
     const sensorData: SensorData[] = series.reduce((data, series) => {
         const fields = series.fields;
-        const fieldOrder = fields.find(x => x.name === "_field").values;
+        const fieldOrder = fields.find(x => x.name === "_field")?.values;
+        if (!fieldOrder) {
+            return data
+        }
         const time = fields[0].labels._time;
         return [...data, ...fields.filter(x => x.name !== "_field").map(sensor => {
             const measurements = sensor.values.map((value, index) => ({field: fieldOrder[index], value: value} as Measurement))
@@ -29,17 +32,19 @@ export const RoomSensorPicker: React.FC = ({item, value, onChange, context}: Sta
     const data: { rooms: Room[] } = JSON.parse(optionsJson as string);
     const roomNames = data.rooms.map(room => room.name);
     const sensorNames = [...new Set(sensorData.map(x => x.sensor_id))].map((id, index) => ({label: id, value: id, key: index}))
-    const map: Map<string, string> = new Map(value?.sensorMappings ? JSON.parse(value.sensorMappings) : []);
+    const map: Map<string, string> = new Map(value ? JSON.parse(value as string) : []);
 
     const update = (room, sensor) => {
         console.log(`${room} set to listen to ${sensor}`)
         if (!sensor) {
-            map.delete(room);
+            const [key, value] = Array.from(map.entries()).find(([s, r]) => r === room);
+            console.log(`Found ${key} ${value}`)
+            map.delete(key);
         } else {
-            map.set(room, sensor);
+            map.set(sensor, room);
         }
         const stringified = JSON.stringify(Array.from(map.entries()))
-        onChange({...value, sensorMappings: stringified});
+        onChange(stringified);
     }
 
     return <div>
@@ -52,7 +57,10 @@ export const RoomSensorPicker: React.FC = ({item, value, onChange, context}: Sta
             </thead>
             <tbody>
             {roomNames.map(name => {
-                const existingMapping = sensorNames.find(x => map.get(name) === x.label) || null;
+                const existingMapping = sensorNames.find(x => map.get(x.value) === name) || null;
+                console.log(existingMapping);
+                console.log(sensorNames);
+                console.log(map);
                 return (<tr>
                     <td style={{padding: "0.5em 0"}}>{name}</td>
                     <td style={{padding: "0.5em 0"}}>

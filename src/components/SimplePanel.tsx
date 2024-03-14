@@ -6,6 +6,7 @@ import {useStyles2, useTheme2} from '@grafana/ui';
 import {FloorRenderer} from "./FloorRender";
 import {CanvasElement, Room} from "../@types/Graphics";
 import {Measurement, QueryData, SensorData} from "../@types/QueryData";
+import {toNumber} from "lodash";
 
 /*
 site_results = from(bucket: "iaq")
@@ -2958,8 +2959,49 @@ const data: SensorData[] = sample_data.series.reduce((data, series) => {
 export const SimplePanel: React.FC<Props> = ({options, data, width, height, fieldConfig}) => {
     const fieldColor = fieldConfig.defaults.color || {mode: FieldColorModeId.ContinuousGrYlRd};
     const fieldColorMode = fieldColorModeRegistry.get(fieldColor.mode);
-    console.log(`Panel Data: ` + JSON.stringify(data?.series))
 
+    const sensorData: SensorData[] = (data?.series || sample_data.series).reduce((data, series) => {
+        const fields = series.fields;
+        const fieldOrder = fields.find(x => x.name === "_field")?.values?.buffer;
+        if (!fieldOrder) {
+            return data
+        }
+        const time = fields[0].labels._time;
+        return [...data, ...fields.filter(x => x.name !== "_field").map(sensor => {
+            const measurements = sensor.values.map((value, index) => {
+                return ({field: fieldOrder[index], value: value} as Measurement);
+            })
+            const sensorData: SensorData = {
+                sensor_id: sensor.name,
+                time: time,
+                measurements: measurements
+            }
+            return sensorData;
+        })];
+    }, []);
+    const mappedByTime: Map<string, Map<string, Map<string, string>>> = sensorData.reduce((map, sensor) => {
+        const sensorMap = map.get(sensor.time) ?? new Map();
+        const measurementMap: Map<string, string> = sensor.measurements.reduce((measurementMap, measurement) => {
+            measurementMap.set(measurement.field, measurement.value);
+            return measurementMap;
+        }, new Map<string, string>)
+        sensorMap.set(sensor.sensor_id, measurementMap);
+        map.set(sensor.time, sensorMap);
+        return map;
+    }, new Map<string, Map<string, Map<string, string>>>);
+
+    function calculateIAQ(co2: number, temp: number, rh: number, voc: number) {
+        const co2Index = Math.min(6, Math.round(co2 / 400)) - 1; // 1 - 6
+        const vocIndex = Math.min(6, Math.round(voc / 50)) - 1; // 1 - 6
+        const best = 0
+        const worst = 10
+        const total = co2Index + vocIndex;
+        const aqi = Math.min(Math.max(0, 100.0 - (100 * (total / worst))), 100)
+        // console.log(`CO2: ${co2} => ${co2Index}, ${voc} => ${vocIndex} ... AQI: ${aqi}`)
+        return aqi ?? 0.0;
+    }
+
+    console.log(mappedByTime);
     let colors = ["green", "orange", "yellow"]
     if (fieldColorMode.getColors) {
         colors = fieldColorMode.getColors(useTheme2());
@@ -3006,8 +3048,27 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
             floorRenderer.canvasOffset = {x: -transformedMinX * ratioX, y: -transformedMaxY * ratioY}
             floorRenderer.lineWidth = ratio;
             floorRenderer.pointSize = 20 * ratio;
+            const roomMap: Map<string, string> = new Map(options?.sensorMappings ? JSON.parse(options.sensorMappings) : [])
+            console.log(roomMap);
+            mappedByTime.forEach((sensorMap, time) => {
+                sensorMap.forEach((value, key) => {
+                    const rh = value.get("RH");
+                    const co2 = value.get("co2");
+                    const voc_index = value.get("voc_index");
+                    const temp = value.get("temperature");
+                    // "RH", "abs_humidity", "co2", "dew_point", "luminance", "temperature", "turned_on", "voc_acc", "voc_eq_co2", "voc_index"
+                    const roomName = roomMap.get(key);
+                    const iaq = calculateIAQ(toNumber(co2), toNumber(temp), toNumber(rh), toNumber(voc_index))
+                    const room = data.rooms.find(x => x.name === roomName);
+                    if (room) {
+                        room.quality = iaq;
+                    }
+                });
+            })
+            floorRenderer.redraw();
+
         }
-    }, [width, height, colors, options])
+    }, [width, height, colors, options, mappedByTime])
     const styles = useStyles2(getStyles);
 
     return (
