@@ -6,7 +6,7 @@ import {useStyles2, useTheme2} from '@grafana/ui';
 import {FloorRenderer} from "./FloorRender";
 import {CanvasElement, Room} from "../@types/Graphics";
 import {Measurement, QueryData, SensorData} from "../@types/QueryData";
-import {toNumber} from "lodash";
+import {parseInt, toNumber} from "lodash";
 
 /*
 site_results = from(bucket: "iaq")
@@ -2959,7 +2959,14 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
     const fieldColor = fieldConfig.defaults.color || {mode: FieldColorModeId.ContinuousGrYlRd};
     const fieldColorMode = fieldColorModeRegistry.get(fieldColor.mode);
     const [roomMetrics, setRoomMetrics] = useState(new Map<string, number>());
-    const [interval, setRedrawInterval] = useState(0);
+    const [interval] = useState({id: 0});
+    const [floorRenderer, setFloorRenderer] = useState(() => new FloorRenderer());
+
+    const jsonData: { rooms: Room[], objects: CanvasElement[] } = JSON.parse(options["json"]);
+    if (floorRenderer.rooms.length === 0) {
+        floorRenderer.rooms = jsonData.rooms;
+        floorRenderer.objects = jsonData.objects;
+    }
     const sensorData: SensorData[] = (data?.series || sample_data.series).reduce((data, series) => {
         const fields = series.fields;
         const fieldOrder = fields.find(x => x.name === "_field")?.values?.buffer;
@@ -2997,7 +3004,7 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
         const worst = 6
         const total = co2Index;
         const aqi = Math.min(Math.max(0, 100.0 - (100 * (total / worst))), 100)
-        console.log(`CO2: ${co2} => ${co2Index}, ${voc} => ${vocIndex} ... AQI: ${aqi}`)
+        // console.log(`CO2: ${co2} => ${co2Index}, ${voc} => ${vocIndex} ... AQI: ${aqi}`)
         return aqi ?? 0.0;
     }
 
@@ -3009,83 +3016,94 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
         colors = [color, colorManipulator.asHexString(colorManipulator.lighten(color, 0.5))];
     }
     const canvasRef = useCallback((node: HTMLCanvasElement) => {
-        if (node && node as HTMLCanvasElement) {
-            const floorRenderer = new FloorRenderer(node);
-            floorRenderer.dpiFix(width, height);
-            const data: { rooms: Room[], objects: CanvasElement[] } = JSON.parse(options["json"]);
-            floorRenderer.rooms = data.rooms;
-            floorRenderer.objects = data.objects;
-            console.log(roomMetrics);
-            data.rooms.forEach(room => {
-                room.quality = roomMetrics.get(room.name);
-            });
-            floorRenderer.setColors(colors);
-            const points = floorRenderer.rooms.flatMap(room => room.lines.flatMap(line => [line.end, line.start]))
+            if (node && node as HTMLCanvasElement) {
+                const previousWidth = parseInt(floorRenderer?.canvas?.style?.width ?? "0");
+                const previousHeight = parseInt(floorRenderer?.canvas?.style?.height ?? "0");
+                floorRenderer.setCanvasNode(node, width, height);
+                if (previousWidth !== width || previousHeight !== height) {
+                    floorRenderer.dpiFix(width, height);
+                    floorRenderer.canvasOffset = {x: 0, y: 0}
 
-            const leastX = points.reduce((previousValue, point) => {
-                const x = point.x;
-                return x <= previousValue ? x : previousValue;
-            }, 0)
-            const mostX = points.reduce((previousValue, point) => {
-                const x = point.x;
-                return x >= previousValue ? x : previousValue;
-            }, 0)
-            const leastY = points.reduce((previousValue, point) => {
-                const y = point.y;
-                return y <= previousValue ? y : previousValue;
-            }, 0)
-            const mostY = points.reduce((previousValue, point) => {
-                const y = point.y;
-                return y >= previousValue ? y : previousValue;
-            }, 0)
-            const transformedMinX = floorRenderer.transformFakeToDrawable({x: leastX, y: 0}).x;
-            const transformedMaxX = floorRenderer.transformFakeToDrawable({x: mostX, y: 0}).x;
-            const transformedMinY = floorRenderer.transformFakeToDrawable({x: 0, y: leastY}).y;
-            const transformedMaxY = floorRenderer.transformFakeToDrawable({x: 0, y: mostY}).y;
-            const distanceX = transformedMaxX - transformedMinX
-            const distanceY = transformedMinY - transformedMaxY
-            const ratioX = width / distanceX;
-            const ratioY = height / distanceY;
-            const ratio = Math.min(ratioY, ratioX);
-            floorRenderer.canvasOffset = {x: -transformedMinX * ratioX, y: -transformedMaxY * ratioY}
-            floorRenderer.lineWidth = ratio;
-            floorRenderer.pointSize = 20 * ratio;
-            const roomMap: Map<string, string> = new Map(options?.sensorMappings ? JSON.parse(options.sensorMappings) : [])
-            const times = Array.from(mappedByTime.keys()).reverse();
-            const latestTime = times[0];
-            const oneBefore = times[1];
-            [mappedByTime.get(oneBefore), mappedByTime.get(latestTime)].forEach((sensorMap, time) => {
-                sensorMap.forEach((value, key) => {
-                    const rh = value.get("RH");
-                    const co2 = value.get("co2");
-                    const voc_index = value.get("voc_index");
-                    const temp = value.get("temperature");
-                    // "RH", "abs_humidity", "co2", "dew_point", "luminance", "temperature", "turned_on", "voc_acc", "voc_eq_co2", "voc_index"
-                    const roomName = roomMap.get(key);
-                    const iaq = calculateIAQ(toNumber(co2), toNumber(temp), toNumber(rh), toNumber(voc_index))
-                    const room = floorRenderer.rooms.find(x => x.name === roomName);
-                    if (room) {
-                        let interval;
-                        roomMetrics.set(roomName, iaq);
-                        room.quality = iaq;
-                    }
-                });
-            })
+                    const points = floorRenderer.rooms.flatMap(room => room.lines.flatMap(line => [line.end, line.start]))
+                    const leastX = points.reduce((previousValue, point) => {
+                        const x = point.x;
+                        return x <= previousValue ? x : previousValue;
+                    }, 0)
+                    const mostX = points.reduce((previousValue, point) => {
+                        const x = point.x;
+                        return x >= previousValue ? x : previousValue;
+                    }, 0)
+                    const leastY = points.reduce((previousValue, point) => {
+                        const y = point.y;
+                        return y <= previousValue ? y : previousValue;
+                    }, 0)
+                    const mostY = points.reduce((previousValue, point) => {
+                        const y = point.y;
+                        return y >= previousValue ? y : previousValue;
+                    }, 0)
+                    const transformedMinX = floorRenderer.transformFakeToDrawable({x: leastX, y: 0}).x;
+                    const transformedMaxX = floorRenderer.transformFakeToDrawable({x: mostX, y: 0}).x;
+                    const transformedMinY = floorRenderer.transformFakeToDrawable({x: 0, y: leastY}).y;
+                    const transformedMaxY = floorRenderer.transformFakeToDrawable({x: 0, y: mostY}).y;
+                    const distanceX = transformedMaxX - transformedMinX
+                    const distanceY = transformedMinY - transformedMaxY
+                    const ratioX = width / distanceX;
+                    const ratioY = height / distanceY;
+                    const ratio = Math.min(ratioY, ratioX);
+                    floorRenderer.canvasOffset = {x: -transformedMinX * ratioX, y: -transformedMaxY * ratioY}
+                    floorRenderer.lineWidth = ratio;
+                    floorRenderer.pointSize = 20 * ratio;
+                    floorRenderer.halfPointSize = floorRenderer.pointSize / 2;
+                }
+                floorRenderer.setColors(colors);
+                const roomMap: Map<string, string> = new Map(options?.sensorMappings ? JSON.parse(options.sensorMappings) : [])
+                const times = Array.from(mappedByTime.keys()).reverse();
+                const latestTime = times[0];
+                const oneBefore = times[1];
+                if (mappedByTime.size > 0) {
+                    [mappedByTime.get(oneBefore), mappedByTime.get(latestTime)].forEach((sensorMap, time) => {
+                        sensorMap.forEach((value, key) => {
+                            const rh = value.get("RH");
+                            const co2 = value.get("co2");
+                            const voc_index = value.get("voc_index");
+                            const temp = value.get("temperature");
+                            // "RH", "abs_humidity", "co2", "dew_point", "luminance", "temperature", "turned_on", "voc_acc", "voc_eq_co2", "voc_index"
+                            const roomName = roomMap.get(key);
+                            const iaq = calculateIAQ(toNumber(co2), toNumber(temp), toNumber(rh), toNumber(voc_index))
+                            const room = floorRenderer.rooms.find(x => x.name === roomName);
+                            if (room) {
+                                if (!roomMetrics.get(roomName)) {
+                                    room.quality = iaq;
+                                }
+                                roomMetrics.set(roomName, iaq);
+                            }
+                        });
+                    })
+                }
+                floorRenderer.redraw()
+            }
+        },
+        [width, height, colors, options, mappedByTime, roomMetrics, floorRenderer])
 
-            floorRenderer.redraw()
-            /*
-            setInterval(() => {
-                floorRenderer.rooms.so(room => {
-                    const iaq = roomMetrics.get(room.name);
-                    if (room.quality !== iaq) {
-                        room.quality += iaq > room.quality ? 1 : -1;
-                    }
-                })
-                floorRenderer.redraw();
-            }, 100)
-             */
+    clearInterval(interval.id);
+    interval.id = setInterval(() => {
+        const rooms = floorRenderer.rooms.filter(room => roomMetrics.get(room.name) && roomMetrics.get(room.name) !== room.quality);
+        rooms.forEach(room => {
+            const desiredIAQ = roomMetrics.get(room.name);
+            if (desiredIAQ) {
+                const difference = Math.abs(desiredIAQ - room.quality);
+                const percentage = difference * 10 / 100
+                const add = desiredIAQ > room.quality ? 1 : -1;
+                room.quality += (add * Math.min(difference, 1));
+                console.log(`${room.quality} vs ${desiredIAQ} vs ${difference} => ${Math.round(add * Math.min(difference, 10))}`);
+            }
+        })
+        if (rooms.length > 0) floorRenderer.redraw()
+        if (rooms.length === 0) {
+            console.log(`Fixed rooms ${Date.now()}`)
+            clearInterval(interval.id)
         }
-    }, [width, height, colors, options, mappedByTime, roomMetrics, interval])
+    }, 100);
     const styles = useStyles2(getStyles);
 
     return (

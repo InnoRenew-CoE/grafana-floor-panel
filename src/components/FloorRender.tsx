@@ -22,16 +22,17 @@ export class FloorRenderer {
     centerPosition: Point2D = {x: 0, y: 0}
     canvasOffset: Point2D = {x: 0, y: 0}
 
-    constructor(canvas: HTMLCanvasElement, objects: CanvasElement[] = [], rooms: Room[] = [], colors: string[] = []) {
-        this.canvas = canvas;
+    constructor() {
         this.rainbow = new Rainbow();
-        this.ctx = canvas.getContext("2d")!!;
-        this.objects = objects;
-        this.rooms = rooms;
+        this.objects = [];
+        this.rooms = [];
         this.windowImage.src = `${WindowImage}`;
         this.singleDoorImage.src = `${SingleDoorsImage}`;
         this.doubleDoorImage.src = `${DoubleDoorsImage}`;
         this.stairsImage.src = `${StairsImage}`;
+        setTimeout(() => {
+            this.redraw()
+        }, 500)
 
         console.log(`Floor Renderers constructor! ${this.canvas} ... ${this.ctx}`)
 
@@ -51,6 +52,11 @@ export class FloorRenderer {
             this.redraw()
         }, 50)
          */
+    }
+
+    public setCanvasNode(canvas: HTMLCanvasElement, width: number, height: number) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d")!!;
     }
 
     public setColors(colors: string[]) {
@@ -90,7 +96,7 @@ export class FloorRenderer {
         type: CanvasElementType.Room,
         name: "Test room"
     }
-    public rooms: Room[] = [this.testRoom];
+    public rooms: Room[] = []// [this.testRoom];
 
     public minimumPointSize = 20
     public pointSize = this.minimumPointSize
