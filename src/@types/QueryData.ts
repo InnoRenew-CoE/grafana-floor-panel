@@ -15,7 +15,7 @@ export type Field = {
 }
 
 export type SensorData = {
-    sensor_id: string,
+    sensorId: string,
     time: string,
     measurements: Measurement[]
 }
