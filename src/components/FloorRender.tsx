@@ -29,6 +29,11 @@ export class FloorRenderer {
     public lineWidth: number = 1 / 3 * this.pointSize
     public scale = 1.0;
     public halfPointSize: number = this.pointSize / 2
+    public onRoomSelection = (room: Room | undefined) => {
+        if (room) {
+            this.colorRoom(room, "rgba(255,255,255, .5");
+        }
+    }
 
     constructor() {
         this.rainbow = new Rainbow();
@@ -48,19 +53,15 @@ export class FloorRenderer {
     public setCanvasNode(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d")!!;
-        canvas.onmousemove = (event) => {
+        canvas.onclick = (event) => {
             const mousePosition: Point2D = {x: event.offsetX, y: event.offsetY}
-            const transformedToFake = this.transformRealToFake(mousePosition);
-            this.redraw()
-
             const roomUnderMouse = this.rooms.find(room => {
                 const roomPoints = room.lines.map(x => this.transformFakeToDrawable(x.end))
                 const polygon = new Polygon(roomPoints);
                 return polygon.contains({x: mousePosition.x, y: mousePosition.y, width: 1, height: 1});
             })
-            if (roomUnderMouse) {
-                this.colorRoom(roomUnderMouse, "rgba(255,255,255, .5");
-            }
+            this.redraw()
+            this.onRoomSelection(roomUnderMouse);
         }
     }
 

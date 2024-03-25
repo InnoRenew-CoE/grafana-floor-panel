@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {colorManipulator, DataFrame, FieldColorModeId, fieldColorModeRegistry} from '@grafana/data';
 import {css, cx} from '@emotion/css';
 import {useStyles2, useTheme2} from '@grafana/ui';
@@ -9,6 +9,7 @@ import {parseInt, toNumber} from "lodash";
 import {Props} from "../@types/PanelProps";
 import {getStyles} from "./PanelStyle";
 import {SimpleOptions} from "../types";
+import {RoomDrawer} from "./RoomDrawer";
 
 export const SimplePanel: React.FC<Props> = ({options, data, width, height, fieldConfig}) => {
     const fieldColor = fieldConfig.defaults.color || {mode: FieldColorModeId.ContinuousGrYlRd};
@@ -16,12 +17,25 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
     const [roomMetrics] = useState(() => new Map<string, number>());
     const [interval] = useState({id: 0});
     const [floorRenderer] = useState(() => new FloorRenderer());
+    const [currentRoom, setCurrentRoom] = useState(() => undefined as (Room | undefined))
 
     const jsonData: { rooms: Room[], objects: CanvasElement[] } = JSON.parse(options["json"]);
     if (floorRenderer.rooms.length === 0) {
         floorRenderer.rooms = jsonData.rooms;
         floorRenderer.objects = jsonData.objects;
     }
+
+    const selectRoom = (currentRoom: Room) => {
+        floorRenderer.redraw()
+        floorRenderer.colorRoom(currentRoom, "rgba(255,123,124,0.73)")
+    }
+
+    floorRenderer.onRoomSelection = (room: Room | undefined) => {
+        setCurrentRoom(room);
+    }
+    useEffect(() => {
+        if (currentRoom) selectRoom(currentRoom);
+    }, [currentRoom])
 
     const sensorData: SensorData[] = mapSensorDataFromSeries(data.series)
     const mappedByTime: Map<string, Map<string, Map<string, string>>> = sensorData.reduce((map, sensor) => {
@@ -43,9 +57,13 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
         colors = [color, colorManipulator.asHexString(colorManipulator.lighten(color, 0.5))];
     }
 
+
     const canvasRef = useCallback((node: HTMLCanvasElement) => {
         if (node && node as HTMLCanvasElement) {
             setCanvasCallback(floorRenderer, node, width, height, options, colors, mappedByTime, roomMetrics)
+            if (currentRoom) {
+                selectRoom(currentRoom)
+            }
         }
     }, [width, height, colors, options, mappedByTime, roomMetrics, floorRenderer])
 
@@ -53,8 +71,9 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
     interval.id = setInterval(() => animateQualityTransition(floorRenderer, roomMetrics, interval.id), 100);
     const styles = useStyles2(getStyles);
     return (
-        <div>
+        <div style={{position: "relative", display: "flex"}}>
             <canvas className={cx(styles.wrapper, css`width: ${width}px; height: ${height}px;`)} ref={canvasRef}/>
+            <RoomDrawer currentRoom={currentRoom} onClose={() => setCurrentRoom(undefined)}/>
         </div>
     );
 };
