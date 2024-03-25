@@ -18,9 +18,17 @@ export class FloorRenderer {
     singleDoorImage = new Image();
     doubleDoorImage = new Image();
     stairsImage = new Image();
-
     centerPosition: Point2D = {x: 0, y: 0}
     canvasOffset: Point2D = {x: 0, y: 0}
+
+    public objects: CanvasElement[] = [];
+    public rooms: Room[] = [];
+
+    public minimumPointSize = 20
+    public pointSize = this.minimumPointSize
+    public lineWidth: number = 1 / 3 * this.pointSize
+    public scale = 1.0;
+    public halfPointSize: number = this.pointSize / 2
 
     constructor() {
         this.rainbow = new Rainbow();
@@ -30,39 +38,31 @@ export class FloorRenderer {
         this.singleDoorImage.src = `${SingleDoorsImage}`;
         this.doubleDoorImage.src = `${DoubleDoorsImage}`;
         this.stairsImage.src = `${StairsImage}`;
-        setTimeout(() => {
-            this.redraw()
-        }, 500)
-
-        console.log(`Floor Renderers constructor! ${this.canvas} ... ${this.ctx}`)
-
-        let currentSign = 1;
-        clearInterval(interval);
-        /*
-        interval = setInterval(() => {
-            const room = this.rooms[Math.floor(Math.random() * this.rooms.length)];
-            if (!room) return;
-            if (room.quality >= 100) {
-                currentSign = -1
-            }
-            if (room.quality <= 0) {
-                currentSign = 1
-            }
-            room.quality += Math.round(currentSign * Math.random());
-            this.redraw()
-        }, 50)
-         */
+        setTimeout(() => this.redraw(), 500) // Redraw after the initial creation after all SVGs have loaded.
     }
 
-    public setCanvasNode(canvas: HTMLCanvasElement, width: number, height: number) {
+    /**
+     * Sets the canvas element reference as well as the canvas 2D context.
+     * @param canvas
+     */
+    public setCanvasNode(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d")!!;
     }
 
+    /**
+     * Creates a rainbow that spans across colors.
+     * @param colors
+     */
     public setColors(colors: string[]) {
         this.rainbow.setSpectrumByArray(colors);
     }
 
+    /**
+     * Sets DPI, point size and scale of the canvas to provide crisp drawings.
+     * @param windowWidth
+     * @param windowHeight
+     */
     public dpiFix(windowWidth: number, windowHeight: number) {
         const width = windowWidth
         const height = windowHeight
@@ -77,39 +77,18 @@ export class FloorRenderer {
         this.redraw()
     }
 
-    public objects: CanvasElement[] = [{
-        type: CanvasElementType.Door,
-        position: {x: 0, y: 0},
-        rotation: 0
-    }];
-
-    public testRoom: Room = {
-        quality: 0,
-        lines: [
-            {start: {x: -5, y: -5}, end: {x: -5, y: 5}},
-            {start: {x: -5, y: 5}, end: {x: 5, y: 5}},
-            {start: {x: 5, y: 5}, end: {x: 5, y: -5}},
-            {start: {x: 5, y: -5}, end: {x: -5, y: -5}},
-        ],
-        position: {x: 0, y: 0},
-        rotation: 0,
-        type: CanvasElementType.Room,
-        name: "Test room"
-    }
-    public rooms: Room[] = []// [this.testRoom];
-
-    public minimumPointSize = 20
-    public pointSize = this.minimumPointSize
-    public lineWidth: number = 1 / 3 * this.pointSize
-    public scale = 1.0;
-    public halfPointSize: number = this.pointSize / 2
-
+    /**
+     * Sets the center position (used for canvas drawing) based on canvas dimensions.
+     */
     public setCenter() {
         let clientWidth = this.canvas.clientWidth
         let clientHeight = this.canvas.clientHeight
         this.centerPosition = {x: clientWidth / 2, y: clientHeight / 2}
     }
 
+    /**
+     * Clears and redraws the whole canvas.
+     */
     public redraw() {
         const ctx = this.ctx;
         if (ctx) {
