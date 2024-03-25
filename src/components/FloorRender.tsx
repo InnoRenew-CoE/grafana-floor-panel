@@ -101,6 +101,12 @@ export class FloorRenderer {
         }
     }
 
+    /**
+     * Transforms fake coordinate point (0,0 center) to the drawable coordinate point (canvas coordinate system).
+     * @param point
+     * @param xPosition
+     * @param yPosition
+     */
     public transformFakeToDrawable = (point: Point2D, xPosition: GridPosition = GridPosition.Center, yPosition: GridPosition = GridPosition.Center) => {
         let addX = 0, addY = 0;
         if (xPosition === GridPosition.Right) {
@@ -120,12 +126,19 @@ export class FloorRenderer {
         return {x: (point.x * this.pointSize + this.canvasOffset.x - this.halfPointSize) + addX, y: (-point.y * this.pointSize + this.canvasOffset.y) - this.halfPointSize + addY}
     }
 
-
+    /**
+     * Transforms real 2D point (canvas coordinate system) to fake coordinate system (0,0 center).
+     * @param point
+     */
     public transformRealToFake = (point: Point2D) => {
         const absolutePosition = {x: point.x - this.canvasOffset.x, y: this.canvasOffset.y - point.y}
         return {x: Math.round(absolutePosition.x / this.pointSize), y: Math.round(absolutePosition.y / this.pointSize)}
     }
 
+    /**
+     * Draws a room in the coordinate system using drawLine function.
+     * @param room
+     */
     public drawRoom(room: Room) {
         const ctx = this.ctx;
         this.colorRoom(room);
@@ -157,6 +170,10 @@ export class FloorRenderer {
         ctx.fillText(room.name, transformed.x - metrics.width / 2, transformed.y)
     }
 
+    /**
+     * Colors room based on room air quality and colors set to the class colors array.
+     * @param room
+     */
     public colorRoom(room: Room) {
         if (room.lines.length <= 2) {
             return
@@ -184,6 +201,10 @@ export class FloorRenderer {
         this.ctx.fill()
     }
 
+    /**
+     * Draws a straight line using the wall size.
+     * @param line
+     */
     public drawLine(line: Line) {
         const startTransformed = this.transformFakeToDrawable(line.start)
         const endTransformed = this.transformFakeToDrawable(line.end)
@@ -193,6 +214,12 @@ export class FloorRenderer {
         // ctx.fillText(`${JSON.stringify(direction)} = ${xPos, yPos}`, endTransformed.x + 200, endTransformed.y + 0.1 * direction.y)
     }
 
+    /**
+     * Draws the text with line distance in meters at the specific text position.
+     * @param line
+     * @param textPosition
+     * @param polygon
+     */
     public displayLineDistance(line: Line, textPosition: Point2D | undefined = undefined, polygon: Polygon | undefined = undefined) {
         const {start, end} = line
         let direction = this.getLineDirection(line);
@@ -215,12 +242,18 @@ export class FloorRenderer {
         ctx.fillText(`${(distance / 2).toFixed(1)}m`, textPosition?.x ?? (transformedCenter.x + xAdd), textPosition?.y ?? (transformedCenter.y + yAdd))
     }
 
-
+    /**
+     * Returns line direction where x can be 1 (right) 0 (none) or -1 (left). And y can be 1 (up) 0 (none) or -1 (down).
+     * @param line
+     */
     public getLineDirection(line: Line) {
         const {start, end} = line;
         return {x: end.x - start.x, y: end.y - start.y};
     }
 
+    /**
+     * Draws all objects from the objects array.
+     */
     public drawObjects() {
         let ctx = this.ctx
         if (!ctx) return;
@@ -264,6 +297,11 @@ export class FloorRenderer {
         }
     }
 
+    /**
+     * Draws the grid with relative scale (zoom and window size).
+     * @param windowWidth
+     * @param windowHeight
+     */
     public drawGrid(windowWidth, windowHeight) {
         const ctx = this.ctx
         const pointSize = this.pointSize;
