@@ -144,6 +144,7 @@ function setCanvasCallback(floorRenderer: FloorRenderer, node: HTMLCanvasElement
         const ratioY = height / distanceY;
         const ratio = Math.min(ratioY, ratioX);
         floorRenderer.canvasOffset = {x: -transformedMinX * ratioX, y: -transformedMaxY * ratioY}
+        floorRenderer.scale = ratio
         floorRenderer.lineWidth = ratio;
         floorRenderer.pointSize = 20 * ratio;
         floorRenderer.halfPointSize = floorRenderer.pointSize / 2;
@@ -163,7 +164,7 @@ function setCanvasCallback(floorRenderer: FloorRenderer, node: HTMLCanvasElement
                 const roomName = roomMap.get(key);
                 const iaq = calculateIAQ(toNumber(co2), toNumber(temp), toNumber(rh), toNumber(voc_index))
                 const room = floorRenderer.rooms.find(x => x.name === roomName);
-                if (room) {
+                if (room && roomName) { // TODO: Check if this is a bug...
                     if (!roomMetrics.get(roomName)) {
                         room.quality = iaq;
                     }
@@ -183,7 +184,7 @@ export function mapSensorDataFromSeries(series: DataFrame[]) {
     return series.reduce((data, series) => {
         const fields = series.fields;
         const fieldOrderValues = fields.find(x => x.name === "_field")?.values
-        const fieldOrder = fieldOrderValues["buffer"];
+        const fieldOrder = fieldOrderValues && fieldOrderValues["buffer"];
         if (!fieldOrderValues || !fieldOrder) return data;
         const time = fields[0].labels._time;
         return [...data, ...fields.filter(x => x.name !== "_field").map(sensor => {

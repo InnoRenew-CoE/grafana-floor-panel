@@ -48,6 +48,20 @@ export class FloorRenderer {
     public setCanvasNode(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d")!!;
+        canvas.onmousemove = (event) => {
+            const mousePosition: Point2D = {x: event.offsetX, y: event.offsetY}
+            const transformedToFake = this.transformRealToFake(mousePosition);
+            this.redraw()
+
+            const roomUnderMouse = this.rooms.find(room => {
+                const roomPoints = room.lines.map(x => this.transformFakeToDrawable(x.end))
+                const polygon = new Polygon(roomPoints);
+                return polygon.contains({x: mousePosition.x, y: mousePosition.y, width: 1, height: 1});
+            })
+            if (roomUnderMouse) {
+                this.colorRoom(roomUnderMouse, "rgba(255,255,255, .5");
+            }
+        }
     }
 
     /**
@@ -72,6 +86,7 @@ export class FloorRenderer {
         this.canvas.height = height * ratio;
         this.canvas.style.width = `${width}px`;
         this.canvas.style.height = `${height}px`;
+        this.scale = ratio;
         this.ctx.scale(ratio, ratio)
         this.setCenter()
         this.redraw()
@@ -173,8 +188,9 @@ export class FloorRenderer {
     /**
      * Colors room based on room air quality and colors set to the class colors array.
      * @param room
+     * @param color
      */
-    public colorRoom(room: Room) {
+    public colorRoom(room: Room, color: string | undefined = undefined) {
         if (room.lines.length <= 2) {
             return
         }
@@ -183,13 +199,12 @@ export class FloorRenderer {
         const transformedStartPoint = this.transformFakeToDrawable(startPoint);
         const transformedLastPoint = this.transformFakeToDrawable(lastPoint);
         const grd = this.ctx.createLinearGradient(transformedStartPoint.x, transformedStartPoint!.y, transformedLastPoint.x, transformedLastPoint.y)
-
         if (room.quality > 0) {
             grd.addColorStop(0, `#${this.rainbow.colorAt(room.quality - 10)}`)
             grd.addColorStop(0.5, `#${this.rainbow.colorAt(room.quality)}`)
             grd.addColorStop(1, `#${this.rainbow.colorAt(room.quality + 10)}`)
         }
-        this.ctx.fillStyle = room.quality > 0 ? grd : "rgba(255,255,255, .1)"
+        this.ctx.fillStyle = color ? color : (room.quality > 0 ? grd : "rgba(255,255,255, .1)")
         this.ctx.beginPath()
         this.ctx.moveTo(transformedStartPoint.x, transformedStartPoint.y)
         room.lines.forEach(({start, end}) => {
