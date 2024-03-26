@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {colorManipulator, DataFrame, FieldColorModeId, fieldColorModeRegistry} from '@grafana/data';
+import {DataFrame, FieldColorModeId, fieldColorModeRegistry} from '@grafana/data';
 import {css, cx} from '@emotion/css';
 import {useStyles2, useTheme2} from '@grafana/ui';
 import {FloorRenderer} from "./FloorRender";
@@ -18,24 +18,23 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
     const [interval] = useState({id: 0});
     const [floorRenderer] = useState(() => new FloorRenderer());
     const [currentRoom, setCurrentRoom] = useState(() => undefined as (Room | undefined))
+    const [settings] = useState(() => ({colors: ["green", "orange", "yellow"], recompute: false}))
 
     const jsonData: { rooms: Room[], objects: CanvasElement[] } = JSON.parse(options["json"]);
-    if (floorRenderer.rooms.length === 0) {
+    if (JSON.stringify(floorRenderer.rooms) !== JSON.stringify(jsonData.rooms)) {
         floorRenderer.rooms = jsonData.rooms;
         floorRenderer.objects = jsonData.objects;
-    }
-
-    const selectRoom = (currentRoom: Room) => {
-        floorRenderer.redraw()
-        floorRenderer.colorRoom(currentRoom, "rgba(255,123,124,0.73)")
-    }
-
+        settings.recompute = true;
+    } else settings.recompute = false;
     floorRenderer.onRoomSelection = (room: Room | undefined) => {
         setCurrentRoom(room);
     }
     useEffect(() => {
-        if (currentRoom) selectRoom(currentRoom);
-    }, [currentRoom])
+        if (currentRoom) {
+            floorRenderer.redraw()
+            floorRenderer.colorRoom(currentRoom, "rgba(110,139,255,0.78)")
+        }
+    }, [currentRoom, floorRenderer])
 
     const sensorData: SensorData[] = mapSensorDataFromSeries(data.series)
     const mappedByTime: Map<string, Map<string, Map<string, string>>> = sensorData.reduce((map, sensor) => {
@@ -43,32 +42,32 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
         const measurementMap: Map<string, string> = sensor.measurements.reduce((measurementMap, measurement) => {
             measurementMap.set(measurement.field, measurement.value);
             return measurementMap;
-        }, new Map<string, string>)
+        }, new Map<string, string>())
         sensorMap.set(sensor.sensorId, measurementMap);
         map.set(sensor.time, sensorMap);
         return map;
-    }, new Map<string, Map<string, Map<string, string>>>);
+    }, new Map<string, Map<string, Map<string, string>>>());
 
-    let colors = ["green", "orange", "yellow"]
+    let theme = useTheme2()
     if (fieldColorMode.getColors) {
-        colors = fieldColorMode.getColors(useTheme2());
-    } else {
-        const color = useTheme2().visualization.getColorByName(fieldColor.fixedColor!)
-        colors = [color, colorManipulator.asHexString(colorManipulator.lighten(color, 0.5))];
+        settings.colors = fieldColorMode.getColors(theme)
     }
-
 
     const canvasRef = useCallback((node: HTMLCanvasElement) => {
         if (node && node as HTMLCanvasElement) {
-            setCanvasCallback(floorRenderer, node, width, height, options, colors, mappedByTime, roomMetrics)
+            setCanvasCallback(floorRenderer, node, width,
+                height, options, settings.colors
+                , mappedByTime, roomMetrics, settings.recompute)
             if (currentRoom) {
-                selectRoom(currentRoom)
+                floorRenderer.redraw()
+                floorRenderer.colorRoom(currentRoom, "rgba(110,139,255,0.78)")
             }
+            floorRenderer.redraw()
         }
-    }, [width, height, colors, options, mappedByTime, roomMetrics, floorRenderer])
+    }, [width, height, settings, options, mappedByTime, roomMetrics, currentRoom, floorRenderer])
 
     clearInterval(interval.id);
-    interval.id = setInterval(() => animateQualityTransition(floorRenderer, roomMetrics, interval.id), 100);
+    interval.id = window.setInterval(() => animateQualityTransition(floorRenderer, roomMetrics, interval.id), 100);
     const styles = useStyles2(getStyles);
     return (
         <div style={{position: "relative", display: "flex"}}>
@@ -127,15 +126,14 @@ function calculateIAQ(co2: number, temp: number, rh: number, voc: number) {
  * @param colors
  * @param mappedByTime
  * @param roomMetrics
+ * @param recompute
  */
-function setCanvasCallback(floorRenderer: FloorRenderer, node: HTMLCanvasElement, width: number, height: number, options: SimpleOptions, colors: string[], mappedByTime: Map<string, Map<string, Map<string, string>>>, roomMetrics: Map<string, number>) {
+function setCanvasCallback(floorRenderer: FloorRenderer, node: HTMLCanvasElement, width: number, height: number, options: SimpleOptions, colors: string[], mappedByTime: Map<string, Map<string, Map<string, string>>>, roomMetrics: Map<string, number>, recompute = false) {
     const previousWidth = parseInt(floorRenderer?.canvas?.style?.width ?? "0");
     const previousHeight = parseInt(floorRenderer?.canvas?.style?.height ?? "0");
     floorRenderer.setCanvasNode(node);
-    if (previousWidth !== width || previousHeight !== height) {
+    if (recompute || previousWidth !== width || previousHeight !== height) {
         floorRenderer.dpiFix(width, height);
-        floorRenderer.canvasOffset = {x: 0, y: 0}
-
         const points = floorRenderer.rooms.flatMap(room => room.lines.flatMap(line => [line.end, line.start]))
         const leastX = points.reduce((previousValue, point) => {
             const x = point.x;
@@ -161,19 +159,21 @@ function setCanvasCallback(floorRenderer: FloorRenderer, node: HTMLCanvasElement
         const distanceY = transformedMinY - transformedMaxY
         const ratioX = width / distanceX;
         const ratioY = height / distanceY;
-        const ratio = Math.min(ratioY, ratioX);
-        floorRenderer.canvasOffset = {x: -transformedMinX * ratioX, y: -transformedMaxY * ratioY}
+        const ratio = Math.min(1, ratioY, ratioX);
+        const pointSize = 20 * ratio
         floorRenderer.scale = ratio
+        floorRenderer.pointSize = pointSize;
+        floorRenderer.halfPointSize = pointSize / 2;
         floorRenderer.lineWidth = ratio;
-        floorRenderer.pointSize = 20 * ratio;
-        floorRenderer.halfPointSize = floorRenderer.pointSize / 2;
+        floorRenderer.canvasOffset = {x: distanceX * ratioX / 2 || 0, y: distanceY * ratioY / 1.25 || 0}
     }
     floorRenderer.setColors(colors);
     const roomMap: Map<string, string> = new Map(options?.sensorMappings ? JSON.parse(options.sensorMappings) : [])
     const times = Array.from(mappedByTime.keys()).reverse();
     const latestTime = times[0];
-    if (mappedByTime.size > 0) {
-        [mappedByTime.get(latestTime)].forEach((sensorMap, time) => {
+    const latestSeries = mappedByTime.get(latestTime);
+    if (latestSeries) {
+        [latestSeries].forEach((sensorMap, time) => {
             sensorMap.forEach((value, key) => {
                 const rh = value.get("RH");
                 const co2 = value.get("co2");
@@ -192,20 +192,20 @@ function setCanvasCallback(floorRenderer: FloorRenderer, node: HTMLCanvasElement
             });
         })
     }
-    floorRenderer.redraw()
 }
 
 /**
  * Maps DataFrame[] into usable SensorData[].
  * @param series
  */
-export function mapSensorDataFromSeries(series: DataFrame[]) {
+export function mapSensorDataFromSeries(series: DataFrame[]): SensorData[] {
     return series.reduce((data, series) => {
         const fields = series.fields;
         const fieldOrderValues = fields.find(x => x.name === "_field")?.values
-        const fieldOrder = fieldOrderValues && fieldOrderValues["buffer"];
-        if (!fieldOrderValues || !fieldOrder) return data;
-        const time = fields[0].labels._time;
+        if (!fieldOrderValues) return data;
+        const fieldOrder: string[] | undefined = fieldOrderValues["buffer"];
+        if (!fieldOrder) return data;
+        const time = fields[0]?.labels?._time ?? "Now";
         return [...data, ...fields.filter(x => x.name !== "_field").map(sensor => {
             const measurements = sensor.values.map((value, index) => ({field: fieldOrder[index], value: value} as Measurement))
             const sensorData: SensorData = {
@@ -215,5 +215,5 @@ export function mapSensorDataFromSeries(series: DataFrame[]) {
             }
             return sensorData;
         })];
-    }, []);
+    }, [] as SensorData[]);
 }

@@ -44,7 +44,7 @@
         }
       ],
       "title": "Panel Title",
-      "type": "innorenew-floorplanquality-panel"
+      "type": "innorenew-iaq-panel"
     }
   ],
   "refresh": "",

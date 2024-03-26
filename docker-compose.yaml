@@ -2,7 +2,7 @@ version: '3.0'
 
 services:
   grafana:
-    container_name: 'innorenew-floorplanquality-panel'
+    container_name: 'innorenew-iaq-panel'
     platform: 'linux/amd64'
     build:
       context: ./.config
@@ -12,5 +12,5 @@ services:
     ports:
       - 3000:3000/tcp
     volumes:
-      - ./dist:/var/lib/grafana/plugins/innorenew-floorplanquality-panel
+      - ./dist:/var/lib/grafana/plugins/innorenew-iaq-panel
       - ./provisioning:/etc/grafana/provisioning

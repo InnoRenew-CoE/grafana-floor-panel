@@ -5,8 +5,7 @@ import WindowImage from "img/window-path.svg"
 import DoubleDoorsImage from "img/double-doors.svg"
 import SingleDoorsImage from "img/single-door.svg"
 import StairsImage from "img/stairs.svg"
-
-export let interval;
+import {add} from "lodash";
 
 export class FloorRenderer {
     canvas: HTMLCanvasElement;
@@ -138,7 +137,6 @@ export class FloorRenderer {
         if (yPosition === GridPosition.Center) {
             addY = this.halfPointSize
         }
-
         return {x: (point.x * this.pointSize + this.canvasOffset.x - this.halfPointSize) + addX, y: (-point.y * this.pointSize + this.canvasOffset.y) - this.halfPointSize + addY}
     }
 
@@ -275,14 +273,16 @@ export class FloorRenderer {
         if (!ctx) return;
         for (let canvasObject of this.objects) {
             const objectDistance = canvasObject.type === CanvasElementType.Stairs ? 6 : 2.5;
+            /*
             let xAdd = 0;
             let yAdd = 0;
-            if (canvasObject.rotation == 0) xAdd = 1;
-            if (canvasObject.rotation == 0.5) yAdd = 1;
-            if (canvasObject.rotation == 1) xAdd = -1;
-            if (canvasObject.rotation == 1.5) yAdd = -1;
+            if (canvasObject.rotation === 0) xAdd = 1;
+            if (canvasObject.rotation === 0.5) yAdd = 1;
+            if (canvasObject.rotation === 1) xAdd = -1;
+            if (canvasObject.rotation === 1.5) yAdd = -1;
+            */
             const objectCenter = this.transformFakeToDrawable(canvasObject.position)
-            const rotation = canvasObject.rotation
+            const rotation = canvasObject.rotation as number
             ctx.save()
             ctx.translate(
                 objectCenter.x - this.pointSize,
@@ -318,7 +318,7 @@ export class FloorRenderer {
      * @param windowWidth
      * @param windowHeight
      */
-    public drawGrid(windowWidth, windowHeight) {
+    public drawGrid(windowWidth: number, windowHeight: number) {
         const ctx = this.ctx
         const pointSize = this.pointSize;
         const numberOfColumns = windowWidth / pointSize

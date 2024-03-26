@@ -28,7 +28,7 @@ export const RoomDrawer: FC<{ currentRoom: Room | undefined, onClose: () => void
             <button onClick={onClose} style={{border: "none"}}>X</button>
             <h4 style={{flex: 1, width: "100%", textAlign: "center"}}>{currentRoom?.name}</h4>
         </div>
-        <center><h5>Tuki grafi pa nastavitve</h5>
+        <center><h5>More features coming soon...</h5>
             <select>
                 <option>IAQ</option>
                 <option>Vlaga</option>
