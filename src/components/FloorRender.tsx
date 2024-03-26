@@ -5,8 +5,7 @@ import WindowImage from "img/window-path.svg"
 import DoubleDoorsImage from "img/double-doors.svg"
 import SingleDoorsImage from "img/single-door.svg"
 import StairsImage from "img/stairs.svg"
-
-export let interval;
+import {add} from "lodash";
 
 export class FloorRenderer {
     canvas: HTMLCanvasElement;
@@ -29,6 +28,11 @@ export class FloorRenderer {
     public lineWidth: number = 1 / 3 * this.pointSize
     public scale = 1.0;
     public halfPointSize: number = this.pointSize / 2
+    public onRoomSelection = (room: Room | undefined) => {
+        if (room) {
+            this.colorRoom(room, "rgba(255,255,255, .5");
+        }
+    }
 
     constructor() {
         this.rainbow = new Rainbow();
@@ -48,6 +52,16 @@ export class FloorRenderer {
     public setCanvasNode(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d")!!;
+        canvas.onclick = (event) => {
+            const mousePosition: Point2D = {x: event.offsetX, y: event.offsetY}
+            const roomUnderMouse = this.rooms.find(room => {
+                const roomPoints = room.lines.map(x => this.transformFakeToDrawable(x.end))
+                const polygon = new Polygon(roomPoints);
+                return polygon.contains({x: mousePosition.x, y: mousePosition.y, width: 1, height: 1});
+            })
+            this.redraw()
+            this.onRoomSelection(roomUnderMouse);
+        }
     }
 
     /**
@@ -72,6 +86,7 @@ export class FloorRenderer {
         this.canvas.height = height * ratio;
         this.canvas.style.width = `${width}px`;
         this.canvas.style.height = `${height}px`;
+        this.scale = ratio;
         this.ctx.scale(ratio, ratio)
         this.setCenter()
         this.redraw()
@@ -101,6 +116,12 @@ export class FloorRenderer {
         }
     }
 
+    /**
+     * Transforms fake coordinate point (0,0 center) to the drawable coordinate point (canvas coordinate system).
+     * @param point
+     * @param xPosition
+     * @param yPosition
+     */
     public transformFakeToDrawable = (point: Point2D, xPosition: GridPosition = GridPosition.Center, yPosition: GridPosition = GridPosition.Center) => {
         let addX = 0, addY = 0;
         if (xPosition === GridPosition.Right) {
@@ -116,16 +137,22 @@ export class FloorRenderer {
         if (yPosition === GridPosition.Center) {
             addY = this.halfPointSize
         }
-
         return {x: (point.x * this.pointSize + this.canvasOffset.x - this.halfPointSize) + addX, y: (-point.y * this.pointSize + this.canvasOffset.y) - this.halfPointSize + addY}
     }
 
-
+    /**
+     * Transforms real 2D point (canvas coordinate system) to fake coordinate system (0,0 center).
+     * @param point
+     */
     public transformRealToFake = (point: Point2D) => {
         const absolutePosition = {x: point.x - this.canvasOffset.x, y: this.canvasOffset.y - point.y}
         return {x: Math.round(absolutePosition.x / this.pointSize), y: Math.round(absolutePosition.y / this.pointSize)}
     }
 
+    /**
+     * Draws a room in the coordinate system using drawLine function.
+     * @param room
+     */
     public drawRoom(room: Room) {
         const ctx = this.ctx;
         this.colorRoom(room);
@@ -157,7 +184,12 @@ export class FloorRenderer {
         ctx.fillText(room.name, transformed.x - metrics.width / 2, transformed.y)
     }
 
-    public colorRoom(room: Room) {
+    /**
+     * Colors room based on room air quality and colors set to the class colors array.
+     * @param room
+     * @param color
+     */
+    public colorRoom(room: Room, color: string | undefined = undefined) {
         if (room.lines.length <= 2) {
             return
         }
@@ -166,13 +198,12 @@ export class FloorRenderer {
         const transformedStartPoint = this.transformFakeToDrawable(startPoint);
         const transformedLastPoint = this.transformFakeToDrawable(lastPoint);
         const grd = this.ctx.createLinearGradient(transformedStartPoint.x, transformedStartPoint!.y, transformedLastPoint.x, transformedLastPoint.y)
-
         if (room.quality > 0) {
             grd.addColorStop(0, `#${this.rainbow.colorAt(room.quality - 10)}`)
             grd.addColorStop(0.5, `#${this.rainbow.colorAt(room.quality)}`)
             grd.addColorStop(1, `#${this.rainbow.colorAt(room.quality + 10)}`)
         }
-        this.ctx.fillStyle = room.quality > 0 ? grd : "rgba(255,255,255, .1)"
+        this.ctx.fillStyle = color ? color : (room.quality > 0 ? grd : "rgba(255,255,255, .1)")
         this.ctx.beginPath()
         this.ctx.moveTo(transformedStartPoint.x, transformedStartPoint.y)
         room.lines.forEach(({start, end}) => {
@@ -184,6 +215,10 @@ export class FloorRenderer {
         this.ctx.fill()
     }
 
+    /**
+     * Draws a straight line using the wall size.
+     * @param line
+     */
     public drawLine(line: Line) {
         const startTransformed = this.transformFakeToDrawable(line.start)
         const endTransformed = this.transformFakeToDrawable(line.end)
@@ -193,6 +228,12 @@ export class FloorRenderer {
         // ctx.fillText(`${JSON.stringify(direction)} = ${xPos, yPos}`, endTransformed.x + 200, endTransformed.y + 0.1 * direction.y)
     }
 
+    /**
+     * Draws the text with line distance in meters at the specific text position.
+     * @param line
+     * @param textPosition
+     * @param polygon
+     */
     public displayLineDistance(line: Line, textPosition: Point2D | undefined = undefined, polygon: Polygon | undefined = undefined) {
         const {start, end} = line
         let direction = this.getLineDirection(line);
@@ -215,25 +256,33 @@ export class FloorRenderer {
         ctx.fillText(`${(distance / 2).toFixed(1)}m`, textPosition?.x ?? (transformedCenter.x + xAdd), textPosition?.y ?? (transformedCenter.y + yAdd))
     }
 
-
+    /**
+     * Returns line direction where x can be 1 (right) 0 (none) or -1 (left). And y can be 1 (up) 0 (none) or -1 (down).
+     * @param line
+     */
     public getLineDirection(line: Line) {
         const {start, end} = line;
         return {x: end.x - start.x, y: end.y - start.y};
     }
 
+    /**
+     * Draws all objects from the objects array.
+     */
     public drawObjects() {
         let ctx = this.ctx
         if (!ctx) return;
         for (let canvasObject of this.objects) {
             const objectDistance = canvasObject.type === CanvasElementType.Stairs ? 6 : 2.5;
+            /*
             let xAdd = 0;
             let yAdd = 0;
-            if (canvasObject.rotation == 0) xAdd = 1;
-            if (canvasObject.rotation == 0.5) yAdd = 1;
-            if (canvasObject.rotation == 1) xAdd = -1;
-            if (canvasObject.rotation == 1.5) yAdd = -1;
+            if (canvasObject.rotation === 0) xAdd = 1;
+            if (canvasObject.rotation === 0.5) yAdd = 1;
+            if (canvasObject.rotation === 1) xAdd = -1;
+            if (canvasObject.rotation === 1.5) yAdd = -1;
+            */
             const objectCenter = this.transformFakeToDrawable(canvasObject.position)
-            const rotation = canvasObject.rotation
+            const rotation = canvasObject.rotation as number
             ctx.save()
             ctx.translate(
                 objectCenter.x - this.pointSize,
@@ -264,7 +313,12 @@ export class FloorRenderer {
         }
     }
 
-    public drawGrid(windowWidth, windowHeight) {
+    /**
+     * Draws the grid with relative scale (zoom and window size).
+     * @param windowWidth
+     * @param windowHeight
+     */
+    public drawGrid(windowWidth: number, windowHeight: number) {
         const ctx = this.ctx
         const pointSize = this.pointSize;
         const numberOfColumns = windowWidth / pointSize

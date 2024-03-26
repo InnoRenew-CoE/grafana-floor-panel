@@ -1,11 +1,17 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "panel",
-  "name": "Floor_plan_quality",
-  "id": "innorenew-floorplanquality-panel",
+  "name": "Indoor air quality floor plan",
+  "id": "innorenew-iaq-panel",
   "info": {
-    "keywords": ["panel"],
-    "description": "Displays air quality information on a floor plan",
+    "keywords": [
+      "panel",
+      "floor plan",
+      "air quality",
+      "humidity",
+      "co2"
+    ],
+    "description": "Displays air quality information on a floor plan.",
     "author": {
       "name": "Mihael Berčič @ InnoRenew"
     },
@@ -14,7 +20,16 @@
       "large": "img/logo.svg"
     },
     "links": [],
-    "screenshots": [],
+    "screenshots": [
+      {
+        "name": "Air Quality",
+        "path": "img/floor-plan-quality.png"
+      },
+      {
+        "name": "Air Humidity",
+        "path": "img/floor-plan-humidity.png"
+      }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },

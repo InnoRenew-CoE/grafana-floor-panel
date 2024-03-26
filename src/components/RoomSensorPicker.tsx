@@ -1,12 +1,11 @@
 import React from "react";
-import {SimpleOptions} from "../types";
 import {StandardEditorProps} from "@grafana/data";
 import {Select} from "@grafana/ui";
 import {SensorData} from "../@types/QueryData";
 import {Room} from "../@types/Graphics";
 import {mapSensorDataFromSeries} from "./SimplePanel";
 
-export const RoomSensorPicker: React.FC = ({value, onChange, context}: StandardEditorProps<SimpleOptions>) => {
+export const RoomSensorPicker = ({value, onChange, context}: StandardEditorProps<string>) => {
     const optionsJson = context?.options?.json;
     const series = (context?.data ?? []);
     if (!series || !optionsJson || series.length === 0) {
@@ -17,10 +16,9 @@ export const RoomSensorPicker: React.FC = ({value, onChange, context}: StandardE
     const roomNames = data.rooms.map(room => room.name);
     const sensorNames = [...new Set(sensorData.map(x => x.sensorId))].map((id, index) => ({label: id, value: id, key: index}))
     const map: Map<string, string> = new Map(value ? JSON.parse(value as string) : []);
-
-    const update = (room, sensor) => {
+    const update = (room: string, sensor: string | undefined) => {
         if (!sensor) {
-            const [key, value] = Array.from(map.entries()).find(([s, r]) => r === room);
+            const [key, value] = Array.from(map.entries()).find(([s, r]) => r === room) ?? ["-", "-"];
             map.delete(key);
         } else {
             map.set(sensor, room);
@@ -40,16 +38,15 @@ export const RoomSensorPicker: React.FC = ({value, onChange, context}: StandardE
             <tbody>
             {roomNames.map(name => {
                 const existingMapping = sensorNames.find(x => map.get(x.value) === name) || null;
-                return (<tr>
+                return (<tr key={name}>
                     <td style={{padding: "0.5em 0"}}>{name}</td>
                     <td style={{padding: "0.5em 0"}}>
                         <div>
                             <Select
                                 value={existingMapping}
                                 isClearable={true}
-                                onChange={e => update(name, e?.value)}
-                                options={sensorNames}>
-                            </Select>
+                                onChange={e => update(name, e?.value as string)}
+                                options={sensorNames}/>
                         </div>
                     </td>
                 </tr>)
