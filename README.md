@@ -18,6 +18,8 @@ The tool is available in a separate repository:
 <img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/5dc3a7fd-97f1-41df-9a1f-1e0458f639bf" width="300px">
 <img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/023dcfa3-1675-44d5-a21a-ad9ad2c47540" width="300px">
 <img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/263bea60-d2e2-4ab1-b74f-4b99d6aa9098" width="300px">
+<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/2cd1b462-c11d-44ce-89ae-a4f1880bac68" width="300px">
+
 
 
 
