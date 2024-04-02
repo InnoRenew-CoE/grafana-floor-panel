@@ -11,8 +11,8 @@ At InnoRenew, we use many kinds of sensors to obtain information about the state
 spacial information. This plugin extends the functionality of Grafana and displays the current state (as opposed to temporal data) of the building. Floor plans must be drawn and imported into the plugin. 
 We provide a web-based tool for drawing floor plans, which provides compatible exports for the plugin.
 
-The tool is available here: https://innorenew-coe.github.io/floor-plan/
-For self-hosting please refer to the repository: https://github.com/InnoRenew-CoE/floor-plan-editor
+<p> The tool is available here: https://innorenew-coe.github.io/floor-plan/ </p>
+<p> For self-hosting please refer to the repository: https://github.com/InnoRenew-CoE/floor-plan-editor </p>
 
 <img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/f9a50aa8-e295-4aca-ae03-c269e5ffd7fd" width="300px">
 <img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/7c8d4068-baa8-48b6-a7e0-ae19bd94aca0" width="300px">
