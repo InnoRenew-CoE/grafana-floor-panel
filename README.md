@@ -1,18 +1,38 @@
-# Floor Plan Indoor Air Quality monitoring
-<p style="text-align:center; opacity: 0.5">(soon interactive)</p>
+# Floor Plan Indoor Sensor monitoring
+<p align="center">
+<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/85c78481-6194-4d88-a6c5-f68d0a96cb8f" height="100px">
+<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/6e821372-da46-4ad1-8b2e-b0f4fdde068a" height="100px">
+</p>
 
-![img.png](https://github.com/MihaelBercic/grafana-floor-panel/blob/main/src/img/floor-plan-quality.png?raw=true)
+## About
+This software was built at InnoRenew CoE within the Information Processing group. The plugin was initially developed for visualizing air quality data in the building, and was later extended to other types of sensors and arbitrary data.
+The objective is to provide an easier open-source alternative for building monitoring within Grafana.
+At InnoRenew, we use many kinds of sensors to obtain information about the state of our institute. Typical monitoring tools (i.e. Grafana) are good at displaying time-series data but often lack
+spacial information. This plugin extends the functionality of Grafana and displays the current state (as opposed to temporal data) of the building. Floor plans must be drawn and imported into the plugin. 
+We provide a web-based tool for drawing floor plans, which provides compatible exports for the plugin.
+
+<p> The tool is available here: https://innorenew-coe.github.io/floor-plan/ </p>
+<p> For self-hosting please refer to the repository: https://github.com/InnoRenew-CoE/floor-plan-editor </p>
+
+<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/f9a50aa8-e295-4aca-ae03-c269e5ffd7fd" width="300px">
+<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/7c8d4068-baa8-48b6-a7e0-ae19bd94aca0" width="300px">
+<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/5dc3a7fd-97f1-41df-9a1f-1e0458f639bf" width="300px">
+<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/023dcfa3-1675-44d5-a21a-ad9ad2c47540" width="300px">
+<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/263bea60-d2e2-4ab1-b74f-4b99d6aa9098" width="300px">
+<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/2cd1b462-c11d-44ce-89ae-a4f1880bac68" width="300px">
+
+
+
 
 ### Features
-- [x] Air Quality rendering
-- [x] Easy configuration and setup
-- [ ] Interactive rooms
-- [ ] Detailed charts of IAQ history.
+- [x] Import and render floot plan.
+- [x] Easy configuration and setup.
+- [x] Integration with Grafana color themes.
+- [x] Bind individual rooms to datapoints.
+- [x] Data bases background changing(gradient).
+- [ ] Interactive rooms.
+- [ ] Detailed time-series displays.
 
-### Short description
-Monitoring indoor air quality through floor plan visualization in Grafana using Flux query language allows for gaining valuable insights into the air quality of different areas within a building. 
-By integrating sensors and data collection points throughout the building, Grafana can display real-time and historical air quality data on a floor plan layout. 
-This enables users to easily identify areas with poor air quality and take appropriate actions to improve it, such as adjusting ventilation systems or implementing air purifiers. Overall, this approach enhances indoor air quality management and contributes to creating healthier and more comfortable environments for occupants.
 
 ### Flux Query Example
 ```flux
