@@ -10,7 +10,7 @@ export type Series = {
 
 export type Field = {
     name: string,
-    labels: { "_time": string },
+    labels: { "_time": string, "sensor_id": string },
     values: string[]
 }
 

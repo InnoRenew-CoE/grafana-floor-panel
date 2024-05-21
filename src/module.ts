@@ -9,7 +9,7 @@ export const plugin = new PanelPlugin<SimpleOptions>(SimplePanel)
             builder.addTextInput({
                 name: "json",
                 path: "json",
-                defaultValue: `{"rooms":[], "objects": []}`,
+                defaultValue: `[]`,
                 category: ["Floor Plan"]
             })
             builder.addCustomEditor({
