@@ -7,8 +7,7 @@
 ## About
 This software was built at InnoRenew CoE within the Information Processing group. The plugin was initially developed for visualizing air quality data in the building, and was later extended to other types of sensors and arbitrary data.
 The objective is to provide an easier open-source alternative for building monitoring within Grafana.
-At InnoRenew, we use many kinds of sensors to obtain information about the state of our institute. Typical monitoring tools (i.e. Grafana) are good at displaying time-series data but often lack
-spacial information. This plugin extends the functionality of Grafana and displays the current state (as opposed to temporal data) of the building. Floor plans must be drawn and imported into the plugin. 
+At InnoRenew, we use many kinds of sensors to obtain information about the state of our institute. Typical monitoring tools (i.e. Grafana) are good at displaying time-series data but often lack the abaility to display data with spacial information (location). This plugin extends the functionality of Grafana with location based visualisation of data designed for building monitoring. Floor plans must be drawn and imported into the plugin. 
 We provide a web-based tool for drawing floor plans, which provides compatible exports for the plugin.
 
 <p> The tool is available here: https://innorenew-coe.github.io/floor-plan/ </p>
