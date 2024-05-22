@@ -11,13 +11,13 @@ export type Series = {
 export type Field = {
     name: string,
     labels: { "_time": string, "sensor_id": string },
-    values: string[]
+    values: any[]
 }
 
 export type SensorData = {
-    sensorId: string,
-    time: string,
-    measurements: Measurement[]
+    id: string,
+    time: number,
+    values: Map<string, number>
 }
 
 export type Measurement = {

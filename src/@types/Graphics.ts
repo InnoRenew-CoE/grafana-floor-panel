@@ -5,20 +5,10 @@ export type Point2D = {
     y: number
 }
 
-export type Room = CanvasElement & {
-    lines: Line[],
+export type Room = {
     quality: number,
     name: string
 }
-
-export type CanvasElement = {
-    position: Point2D,
-    rotation: Number,
-    type: CanvasElementType
-}
-
-export type Door = CanvasElement
-export type Window = CanvasElement
 
 export type Line = {
     start: Point2D,
@@ -26,21 +16,6 @@ export type Line = {
     // type: string
 }
 
-export enum ActionState {
-    Drawing = "Drawing",
-    None = "None",
-}
-
 export enum GridPosition {
     Left, Right, Center, Top, Bottom
-}
-
-export enum CanvasElementType {
-    Door = "Door",
-    DoubleDoor = "DoubleDoor",
-    Desk = "Desk",
-    ParkingSpace = "ParkingSpace",
-    Stairs = "Stairs",
-    Window = "Window",
-    Room = "Room"
 }
