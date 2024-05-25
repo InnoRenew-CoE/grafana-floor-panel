@@ -4,6 +4,6 @@
     "noUnusedLocals": false,
     "strictPropertyInitialization": false,
     "suppressImplicitAnyIndexErrors": true,
-
+    "target": "esnext"
   }
 }

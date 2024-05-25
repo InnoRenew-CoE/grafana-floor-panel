@@ -5,23 +5,39 @@ import {Props} from "../@types/PanelProps";
 import {SensorData, Series} from "../@types/QueryData";
 import {Room} from "../@types/Graphics";
 import Rainbow from "rainbowvis.js";
-import {now, random} from "lodash";
+import {now} from "lodash";
+
+type Color = {
+    name: string,
+    value: number
+}
 
 export const SimplePanel: React.FC<Props> = ({options, data, width, height, fieldConfig}) => {
+    let theme = useTheme2()
+
     const fieldColor = fieldConfig.defaults.color || {mode: FieldColorModeId.ContinuousGrYlRd};
     const fieldColorMode = fieldColorModeRegistry.get(fieldColor.mode);
     const [roomMetrics] = useState(() => new Map<string, number>());
     const [rooms, setRooms] = useState<Room[]>(() => []);
     const [interval] = useState({id: 0});
     const [rainbow] = useState(() => new Rainbow());
-    const [container, setContainer] = useState<HTMLElement | undefined>(undefined);
-    const [settings] = useState(() => ({colors: ["green", "orange", "yellow"], recompute: false}))
+    const [container, setContainer] = useState<SVGElement | undefined>(undefined);
+    const [settings] = useState<{ colors: Color[] }>(() => ({colors: [{name: "transparent", value: 0}]}))
     const [lastUpdate, setLastUpdate] = useState<number>(0);
 
-    let theme = useTheme2()
     if (fieldColorMode.getColors) {
-        settings.colors = fieldColorMode.getColors(theme)
+        const colors = fieldColorMode.getColors(theme)
+        settings.colors = colors.map((x, i) => ({name: x, value: i / colors.length}));
+    } else if (fieldColorMode.id === "thresholds") {
+        const colors = fieldConfig.defaults.thresholds?.steps.map(x => ({name: x.color, value: Math.max(x.value, 0)}))
+        settings.colors = colors.sort((a, b) => a.value - b.value);
     }
+    rainbow.setSpectrumByArray(settings.colors.map(x => theme.visualization.getColorByName(x.name)))
+    const all: Room[] = parseRooms(options.svg).map(name => ({name: name, quality: 0}));
+    if (all.some(x => !rooms.some(y => x.name === y.name))) {
+        setRooms(all)
+    }
+
     if (now() - lastUpdate > 3000) {
         setLastUpdate(now())
         const measurements: SensorData[] = mapData(data.series as unknown as Series[]);
@@ -30,25 +46,21 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
             const room = sensorMappings.get(sensorData.id);
             if (!room) continue;
             const values = sensorData.values;
-            const iaq = calculateIAQ(values.get("co2"), values.get("temperature"), 0, 0) + random(-50, 50, false);
+            const iaq = calculateIAQ(values.get("co2"), values.get("temperature"), 0, values.get("voc_index")); // + random(-50, 50, false);
             roomMetrics.set(room, iaq)
         }
     }
 
     clearInterval(interval.id);
     if (container) {
-        interval.id = window.setInterval(() => animateQualityTransition(rainbow, container, rooms, roomMetrics, interval.id), 50);
+        interval.id = window.setInterval(() => animateQualityTransition(rainbow, settings.colors, container, rooms, roomMetrics, interval.id), 50);
     }
     const svgRef = useCallback((node) => {
         if (node instanceof HTMLElement) {
-            console.log("REF")
             node.innerHTML = options.svg;
-            rainbow.setSpectrumByArray(settings.colors)
-            const all: Room[] = parseRooms(options.svg).map(name => ({name: name, quality: 0}));
-            setRooms(all)
-            setContainer(node)
             const svg = node.getElementsByTagName("svg")[0];
             if (svg) {
+                setContainer(svg)
                 svg.removeAttribute("width");
                 svg.removeAttribute("height");
             }
@@ -79,12 +91,13 @@ export function mapData(series: Series[]) {
 /**
  * Slowly and smoothly recolors rooms to avoid flickering
  * @param rainbow
+ * @param colors
  * @param container
  * @param rooms
  * @param roomMetrics
  * @param intervalId
  */
-function animateQualityTransition(rainbow: Rainbow, container: HTMLElement, rooms: Room[], roomMetrics: Map<string, number>, intervalId: number) {
+function animateQualityTransition(rainbow: Rainbow, colors: Color[], container: SVGElement, rooms: Room[], roomMetrics: Map<string, number>, intervalId: number) {
     const redrawNeeded = rooms.filter(room => {
         const metric = roomMetrics.get(room.name);
         if (!metric) return false;
@@ -98,7 +111,10 @@ function animateQualityTransition(rainbow: Rainbow, container: HTMLElement, room
             room.quality += (add * Math.min(difference, 1));
             const roomElement = container.querySelector(`#room\\:${room.name}`);
             if (roomElement) {
-                roomElement.setAttribute("fill", `#${rainbow.colorAt(room.quality)}`)
+                createOrModifyRadialGradient(container, {name: rainbow.colorAt(room.quality), value: 0}, room);
+                roomElement.setAttribute("fill", `url(#rg${room.name})`)
+                //roomElement.setAttribute("fill", `#${rainbow.colorAt(room.quality)}`)
+                roomElement.setAttribute("fill-opacity", "1")
             }
         }
     })
@@ -117,7 +133,7 @@ function animateQualityTransition(rainbow: Rainbow, container: HTMLElement, room
 function calculateIAQ(co2: number, temp: number, rh: number, voc: number) {
     const co2Index = Math.min(6, Math.round(co2 / 400)); // 1 - 6
     const vocIndex = Math.min(6, Math.round(voc / 50)); // 1 - 6
-    const best = 0
+    const worstOfTheTwo = Math.max(co2Index, vocIndex);
     const worst = 6
     const aqi = Math.min(Math.max(0, 100.0 - (100 * (co2Index / worst))), 100)
     return aqi ?? 0.0;
@@ -129,4 +145,18 @@ export function parseRooms(svg: string) {
     const rooms = parsed.querySelectorAll('[id*="room"]')
     const roomNames: string[] = ([...rooms].map(x => x.id.replaceAll(/room:/g, "")))
     return roomNames;
+}
+
+function createOrModifyRadialGradient(container: SVGElement, rightColor: Color, room: Room) {
+    let gradientElement = container.querySelector(`#rg${room.name}`);
+    if (!gradientElement) {
+        gradientElement = document.createElementNS("http://www.w3.org/2000/svg", "radialGradient");
+        gradientElement.setAttribute("id", `rg${room.name}`);
+        container.appendChild(gradientElement);
+    }
+    gradientElement.setAttribute("r", "120%")
+    gradientElement.innerHTML = `
+    <stop offset="0.1" stop-color="transparent" />
+    <stop offset="1" stop-color="#${rightColor.name}" />
+    `;
 }
