@@ -121,6 +121,7 @@ from(bucket: "iaq")
 ```
 
 #### Sample Floor plan SVG Data
+https://github.com/InnoRenew-CoE/grafana-floor-panel/blob/main/floor_plan.svg
 
 
 #### Note:
