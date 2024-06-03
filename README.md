@@ -1,62 +1,131 @@
-# Floor Plan Indoor Sensor monitoring
-<p align="center">
-<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/85c78481-6194-4d88-a6c5-f68d0a96cb8f" height="100px">
-<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/6e821372-da46-4ad1-8b2e-b0f4fdde068a" height="100px">
-</p>
+# Floor Plan Indoor Air Quality monitoring
+<p style="text-align:center; opacity: 0.5">(soon interactive)</p>
 
-## About
-This software was built at InnoRenew CoE within the Information Processing group. The plugin was initially developed for visualizing air quality data in the building, and was later extended to other types of sensors and arbitrary data.
-The objective is to provide an easier open-source alternative for building monitoring within Grafana.
-At InnoRenew, we use many kinds of sensors to obtain information about the state of our institute. Typical monitoring tools (i.e. Grafana) are good at displaying time-series data but often lack the abaility to display data with spacial information (location). This plugin extends the functionality of Grafana with location based visualisation of data designed for building monitoring. Floor plans must be drawn and imported into the plugin. 
-We provide a web-based tool for drawing floor plans, which provides compatible exports for the plugin.
-
-<p> The tool is available here: https://innorenew-coe.github.io/floor-plan/ </p>
-<p> For self-hosting please refer to the repository: https://github.com/InnoRenew-CoE/floor-plan-editor </p>
-
-<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/f9a50aa8-e295-4aca-ae03-c269e5ffd7fd" width="300px">
-<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/7c8d4068-baa8-48b6-a7e0-ae19bd94aca0" width="300px">
-<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/5dc3a7fd-97f1-41df-9a1f-1e0458f639bf" width="300px">
-<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/023dcfa3-1675-44d5-a21a-ad9ad2c47540" width="300px">
-<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/263bea60-d2e2-4ab1-b74f-4b99d6aa9098" width="300px">
-<img src="https://github.com/MihaelBercic/grafana-floor-panel/assets/2729743/2cd1b462-c11d-44ce-89ae-a4f1880bac68" width="300px">
-
-
-
+![img.png](https://github.com/MihaelBercic/grafana-floor-panel/blob/main/src/img/iaq.png?raw=true)
+![img.png](https://github.com/MihaelBercic/grafana-floor-panel/blob/main/src/img/humidity.png?raw=true)
 
 ### Features
-- [x] Import and render floot plan.
-- [x] Easy configuration and setup.
-- [x] Integration with Grafana color themes.
-- [x] Bind individual rooms to datapoints.
-- [x] Data bases background changing(gradient).
-- [ ] Interactive rooms.
-- [ ] Detailed time-series displays.
+- [x] Air Quality rendering
+- [x] Easy configuration and setup
+- [ ] Interactive rooms
+- [ ] Detailed charts of IAQ history.
 
+### Short description
+Monitoring indoor air quality through floor plan visualization in Grafana using Flux query language allows for gaining valuable insights into the air quality of different areas within a building.
+By integrating sensors and data collection points throughout the building, Grafana can display real-time and historical air quality data on a floor plan layout.
+This enables users to easily identify areas with poor air quality and take appropriate actions to improve it, such as adjusting ventilation systems or implementing air purifiers. Overall, this approach enhances indoor air quality management and contributes to creating healthier and more comfortable environments for occupants.
 
-### Flux Query Example
+The plugin finds rooms in the provided floor plan SVG by looking for prefix of `room:` (example: `room:Living room`) and in the future walls with the prefix of `wall:` (example: `wall:south-east`).
+
+### Public Dashboard Example
+https://iaq.innorenew.eu/grafana/public-dashboards/535d826acc744109b4d64a68654ee262?orgId=1&refresh=5s
+
+### Required Data Example (CSV)
+```csv
+#group,false,false,false,false,false,true
+#datatype,string,long,string,dateTime:RFC3339,string,string
+#default,_result,,,,,
+,result,table,_field,_time,_value,sensor_id
+,,0,RH,2024-06-03T07:06:00Z,59.89,411
+,,0,abs_humidity,2024-06-03T07:06:00Z,12.41,411
+,,0,co2,2024-06-03T07:06:00Z,500.48,411
+,,0,dew_point,2024-06-03T07:06:00Z,14.96,411
+,,0,luminance,2024-06-03T07:06:00Z,40.43,411
+,,0,temperature,2024-06-03T07:06:00Z,23.19,411
+,,0,voc_eq_co2,2024-06-03T07:06:00Z,577.68,411
+,,0,voc_index,2024-06-03T07:06:00Z,577.68,411
+,,1,RH,2024-06-03T07:06:00Z,53.0938,ir-00
+,,1,abs_humidity,2024-06-03T07:06:00Z,12.3588,ir-00
+,,1,co2,2024-06-03T07:06:00Z,504.1678,ir-00
+,,1,dew_point,2024-06-03T07:06:00Z,15.0008,ir-00
+,,1,luminance,2024-06-03T07:06:00Z,297.5616,ir-00
+,,1,temperature,2024-06-03T07:06:00Z,25.2382,ir-00
+,,1,turned_on,2024-06-03T07:06:00Z,17091208,ir-00
+,,1,voc_acc,2024-06-03T07:06:00Z,NULL,ir-00
+,,1,voc_eq_co2,2024-06-03T07:06:00Z,665,ir-00
+,,1,voc_index,2024-06-03T07:06:00Z,665,ir-00
+,,2,RH,2024-06-03T07:06:00Z,47.0603,ir-01
+,,2,abs_humidity,2024-06-03T07:06:00Z,11.5456,ir-01
+,,2,co2,2024-06-03T07:06:00Z,419.7745,ir-01
+,,2,dew_point,2024-06-03T07:06:00Z,13.9951,ir-01
+,,2,luminance,2024-06-03T07:06:00Z,16.1856,ir-01
+,,2,temperature,2024-06-03T07:06:00Z,26.1782,ir-01
+,,2,turned_on,2024-06-03T07:06:00Z,19316144,ir-01
+,,2,voc_acc,2024-06-03T07:06:00Z,NULL,ir-01
+,,2,voc_eq_co2,2024-06-03T07:06:00Z,488,ir-01
+,,2,voc_index,2024-06-03T07:06:00Z,488,ir-01
+,,3,RH,2024-06-03T07:06:00Z,47.2755,ir-02
+,,3,abs_humidity,2024-06-03T07:06:00Z,11.1204,ir-02
+,,3,co2,2024-06-03T07:06:00Z,425.1092,ir-02
+,,3,dew_point,2024-06-03T07:06:00Z,13.3786,ir-02
+,,3,luminance,2024-06-03T07:06:00Z,0,ir-02
+,,3,temperature,2024-06-03T07:06:00Z,25.4251,ir-02
+,,3,turned_on,2024-06-03T07:06:00Z,12344016,ir-02
+,,3,voc_acc,2024-06-03T07:06:00Z,NULL,ir-02
+,,3,voc_eq_co2,2024-06-03T07:06:00Z,698,ir-02
+,,3,voc_index,2024-06-03T07:06:00Z,698,ir-02
+,,4,RH,2024-06-03T07:06:00Z,57.1145,ir-03
+,,4,abs_humidity,2024-06-03T07:06:00Z,12.2462,ir-03
+,,4,co2,2024-06-03T07:06:00Z,474.4346,ir-03
+,,4,dew_point,2024-06-03T07:06:00Z,14.7826,ir-03
+,,4,luminance,2024-06-03T07:06:00Z,36.288,ir-03
+,,4,temperature,2024-06-03T07:06:00Z,23.7829,ir-03
+,,4,turned_on,2024-06-03T07:06:00Z,1522037,ir-03
+,,4,voc_acc,2024-06-03T07:06:00Z,NULL,ir-03
+,,4,voc_eq_co2,2024-06-03T07:06:00Z,540,ir-03
+,,4,voc_index,2024-06-03T07:06:00Z,540,ir-03
+,,5,RH,2024-06-03T07:06:00Z,56.2478,ir-04
+,,5,abs_humidity,2024-06-03T07:06:00Z,11.8319,ir-04
+,,5,co2,2024-06-03T07:06:00Z,676.0902,ir-04
+,,5,dew_point,2024-06-03T07:06:00Z,14.2318,ir-04
+,,5,luminance,2024-06-03T07:06:00Z,26.8416,ir-04
+,,5,temperature,2024-06-03T07:06:00Z,23.4464,ir-04
+,,5,turned_on,2024-06-03T07:06:00Z,5754636,ir-04
+,,5,voc_acc,2024-06-03T07:06:00Z,NULL,ir-04
+,,5,voc_eq_co2,2024-06-03T07:06:00Z,431,ir-04
+,,5,voc_index,2024-06-03T07:06:00Z,431,ir-04
+,,6,RH,2024-06-03T07:06:00Z,63.9078,ir-06
+,,6,abs_humidity,2024-06-03T07:06:00Z,12.1686,ir-06
+,,6,co2,2024-06-03T07:06:00Z,431.7405,ir-06
+,,6,dew_point,2024-06-03T07:06:00Z,14.5753,ir-06
+,,6,luminance,2024-06-03T07:06:00Z,3.2832,ir-06
+,,6,temperature,2024-06-03T07:06:00Z,21.708,ir-06
+,,6,turned_on,2024-06-03T07:06:00Z,23495992,ir-06
+,,6,voc_acc,2024-06-03T07:06:00Z,NULL,ir-06
+,,6,voc_eq_co2,2024-06-03T07:06:00Z,457,ir-06
+,,6,voc_index,2024-06-03T07:06:00Z,457,ir-06
+,,7,RH,2024-06-03T07:06:00Z,57.4838,ir-07
+,,7,abs_humidity,2024-06-03T07:06:00Z,11.7847,ir-07
+,,7,co2,2024-06-03T07:06:00Z,433.5116,ir-07
+,,7,dew_point,2024-06-03T07:06:00Z,14.1465,ir-07
+,,7,luminance,2024-06-03T07:06:00Z,5.3568,ir-07
+,,7,temperature,2024-06-03T07:06:00Z,22.9951,ir-07
+,,7,turned_on,2024-06-03T07:06:00Z,19316228,ir-07
+,,7,voc_acc,2024-06-03T07:06:00Z,NULL,ir-07
+,,7,voc_eq_co2,2024-06-03T07:06:00Z,464,ir-07
+,,7,voc_index,2024-06-03T07:06:00Z,464,ir-07
+```
+
+**Data should be grouped as**
+```
+<sensor_id, <_field, _time, _value, sensor_id>>
+```
+
+A flux example query would be
 ```flux
-site_results = from(bucket: "iaq")
+from(bucket: "iaq")
   |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
   |> filter(fn: (r) => r["_measurement"] == "iaq_data")
-  |> filter(fn: (r) => r["building"] == "innorenew")
-
-sensor_ids = site_results 
   |> map(fn: (r) => ({r with _value: string(v:r._value)}))
-  |> keep(columns: ["_time", "_value", "_field", "sensor_id"])
-
-mapped_sensors = sensor_ids
-  |> truncateTimeColumn(unit: 1m)
-  |> pivot(rowKey: ["_time", "_field"], columnKey: ["sensor_id"], valueColumn: "_value")
-  |> group(columns: ["_time"])
-
-mapped_sensors
+  |> truncateTimeColumn(unit: 2m)
+  |> last()
+  |> group(columns: ["sensor_id"])
+  |> drop(columns: ["_start", "_stop", "_measurement", "building"])
 ```
 
-#### Settings
-Room JSON sample:
-```json
-{"rooms":[{"lines":[{"start":{"x":-28,"y":5},"end":{"x":-40,"y":5}},{"start":{"x":-40,"y":5},"end":{"x":-40,"y":-15}},{"start":{"x":-40,"y":-15},"end":{"x":-28,"y":-15}},{"start":{"x":-28,"y":-15},"end":{"x":-28,"y":5}}],"quality":0,"position":{"x":-34,"y":-5},"rotation":0,"type":"Room","name":"Laboratorij za akustiko"},{"lines":[{"start":{"x":-28,"y":5},"end":{"x":-26,"y":5}},{"start":{"x":-26,"y":5},"end":{"x":-26,"y":-7}},{"start":{"x":-26,"y":-7},"end":{"x":-28,"y":-7}},{"start":{"x":-28,"y":-7},"end":{"x":-28,"y":5}}],"quality":0,"position":{"x":-27,"y":-1},"rotation":0,"type":"Room","name":""},{"lines":[{"start":{"x":-28,"y":-7},"end":{"x":-18,"y":-7}},{"start":{"x":-18,"y":-7},"end":{"x":-18,"y":-11}},{"start":{"x":-18,"y":-11},"end":{"x":-28,"y":-11}},{"start":{"x":-28,"y":-11},"end":{"x":-28,"y":-7}}],"quality":0,"position":{"x":-23,"y":-9},"rotation":0,"type":"Room","name":"Vzdrževalec"},{"lines":[{"start":{"x":-26,"y":-7},"end":{"x":-18,"y":-7}},{"start":{"x":-18,"y":-7},"end":{"x":-18,"y":-5}},{"start":{"x":-18,"y":-5},"end":{"x":-26,"y":-5}},{"start":{"x":-26,"y":-5},"end":{"x":-26,"y":-7}}],"quality":0,"position":{"x":-22,"y":-6},"rotation":0,"type":"Room","name":"Čistila"},{"lines":[{"start":{"x":-26,"y":5},"end":{"x":-18,"y":5}},{"start":{"x":-18,"y":5},"end":{"x":-18,"y":1}},{"start":{"x":-18,"y":1},"end":{"x":-26,"y":1}},{"start":{"x":-26,"y":1},"end":{"x":-26,"y":5}}],"quality":0,"position":{"x":-22,"y":3},"rotation":0,"type":"Room","name":"Stopnišče"},{"lines":[{"start":{"x":-26,"y":-2},"end":{"x":-18,"y":-2}},{"start":{"x":-18,"y":-2},"end":{"x":-18,"y":1}},{"start":{"x":-18,"y":1},"end":{"x":-26,"y":1}},{"start":{"x":-26,"y":1},"end":{"x":-26,"y":-2}}],"quality":0,"position":{"x":-22,"y":-0.5},"rotation":0,"type":"Room","name":"Garderoba 2"},{"lines":[{"start":{"x":-26,"y":-2},"end":{"x":-26,"y":-5}},{"start":{"x":-26,"y":-5},"end":{"x":-18,"y":-5}},{"start":{"x":-18,"y":-5},"end":{"x":-18,"y":-2}},{"start":{"x":-18,"y":-2},"end":{"x":-26,"y":-2}}],"quality":0,"position":{"x":-22,"y":-3.5},"rotation":0,"type":"Room","name":"Garderoba 1"},{"lines":[{"start":{"x":-28,"y":5},"end":{"x":-28,"y":9}},{"start":{"x":-28,"y":9},"end":{"x":-18,"y":9}},{"start":{"x":-18,"y":9},"end":{"x":-18,"y":5}},{"start":{"x":-18,"y":5},"end":{"x":-28,"y":5}}],"quality":0,"position":{"x":-23,"y":7},"rotation":0,"type":"Room","name":"Hodnik"},{"lines":[{"start":{"x":-26,"y":9},"end":{"x":-26,"y":13}},{"start":{"x":-26,"y":13},"end":{"x":-20,"y":13}},{"start":{"x":-20,"y":13},"end":{"x":-20,"y":9}},{"start":{"x":-20,"y":9},"end":{"x":-26,"y":9}}],"quality":0,"position":{"x":-23,"y":11},"rotation":0,"type":"Room","name":"WC 8"},{"lines":[{"start":{"x":-20,"y":9},"end":{"x":-18,"y":9}},{"start":{"x":-18,"y":9},"end":{"x":-18,"y":17}},{"start":{"x":-18,"y":17},"end":{"x":-21,"y":17}},{"start":{"x":-21,"y":17},"end":{"x":-21,"y":13}},{"start":{"x":-21,"y":13},"end":{"x":-20,"y":13}},{"start":{"x":-20,"y":13},"end":{"x":-20,"y":9}}],"quality":0,"position":{"x":-19.5,"y":13},"rotation":0,"type":"Room","name":""},{"lines":[{"start":{"x":-26,"y":13},"end":{"x":-26,"y":17}},{"start":{"x":-26,"y":17},"end":{"x":-24,"y":17}},{"start":{"x":-24,"y":17},"end":{"x":-24,"y":13}},{"start":{"x":-24,"y":13},"end":{"x":-26,"y":13}}],"quality":0,"position":{"x":-25,"y":15},"rotation":0,"type":"Room","name":""},{"lines":[{"start":{"x":-24,"y":13},"end":{"x":-21,"y":13}},{"start":{"x":-21,"y":13},"end":{"x":-21,"y":17}},{"start":{"x":-21,"y":17},"end":{"x":-23,"y":17}},{"start":{"x":-23,"y":17},"end":{"x":-24,"y":17}},{"start":{"x":-24,"y":17},"end":{"x":-24,"y":13}}],"quality":0,"position":{"x":-22.5,"y":15},"rotation":0,"type":"Room","name":""},{"lines":[{"start":{"x":-26,"y":9},"end":{"x":-28,"y":9}},{"start":{"x":-28,"y":9},"end":{"x":-28,"y":40}},{"start":{"x":-28,"y":40},"end":{"x":-18,"y":40}},{"start":{"x":-18,"y":40},"end":{"x":-18,"y":17}},{"start":{"x":-18,"y":17},"end":{"x":-26,"y":17}},{"start":{"x":-26,"y":17},"end":{"x":-26,"y":9}}],"quality":0,"position":{"x":-23,"y":24.5},"rotation":0,"type":"Room","name":"Laboratorij Fizikalna"},{"lines":[{"start":{"x":-28,"y":9},"end":{"x":-40,"y":9}},{"start":{"x":-40,"y":9},"end":{"x":-40,"y":33}},{"start":{"x":-40,"y":33},"end":{"x":-28,"y":33}},{"start":{"x":-28,"y":33},"end":{"x":-28,"y":9}}],"quality":0,"position":{"x":-34,"y":21},"rotation":0,"type":"Room","name":"Mizarska delavnica"},{"lines":[{"start":{"x":-18,"y":-7},"end":{"x":2,"y":-7}},{"start":{"x":2,"y":-7},"end":{"x":2,"y":19}},{"start":{"x":2,"y":19},"end":{"x":-18,"y":19}},{"start":{"x":-18,"y":19},"end":{"x":-18,"y":-7}}],"quality":0,"position":{"x":-8,"y":6},"rotation":0,"type":"Room","name":"Lobi"},{"lines":[{"start":{"x":2,"y":19},"end":{"x":10,"y":19}},{"start":{"x":10,"y":19},"end":{"x":10,"y":23}},{"start":{"x":10,"y":23},"end":{"x":2,"y":23}},{"start":{"x":2,"y":23},"end":{"x":2,"y":40}},{"start":{"x":2,"y":40},"end":{"x":-18,"y":40}},{"start":{"x":-18,"y":40},"end":{"x":-18,"y":19}},{"start":{"x":-18,"y":19},"end":{"x":2,"y":19}}],"quality":0,"position":{"x":-4,"y":29.5},"rotation":0,"type":"Room","name":"Laboratorij Zdravja"},{"lines":[{"start":{"x":2,"y":23},"end":{"x":2,"y":27}},{"start":{"x":2,"y":27},"end":{"x":7,"y":27}},{"start":{"x":7,"y":27},"end":{"x":7,"y":25}},{"start":{"x":7,"y":25},"end":{"x":10,"y":25}},{"start":{"x":10,"y":25},"end":{"x":10,"y":23}},{"start":{"x":10,"y":23},"end":{"x":2,"y":23}}],"quality":0,"position":{"x":6,"y":25},"rotation":0,"type":"Room","name":"Skaldišče"},{"lines":[{"start":{"x":7,"y":27},"end":{"x":7,"y":29}},{"start":{"x":7,"y":29},"end":{"x":10,"y":29}},{"start":{"x":10,"y":29},"end":{"x":10,"y":25}},{"start":{"x":10,"y":25},"end":{"x":7,"y":25}},{"start":{"x":7,"y":25},"end":{"x":7,"y":27}}],"quality":0,"position":{"x":8.5,"y":27},"rotation":0,"type":"Room","name":"Dvig"},{"lines":[{"start":{"x":7,"y":27},"end":{"x":7,"y":40}},{"start":{"x":7,"y":40},"end":{"x":2,"y":40}},{"start":{"x":2,"y":40},"end":{"x":2,"y":27}},{"start":{"x":2,"y":27},"end":{"x":7,"y":27}}],"quality":0,"position":{"x":4.5,"y":33.5},"rotation":0,"type":"Room","name":"Oprema"},{"lines":[{"start":{"x":10,"y":29},"end":{"x":10,"y":40}},{"start":{"x":10,"y":40},"end":{"x":7,"y":40}},{"start":{"x":7,"y":40},"end":{"x":7,"y":29}},{"start":{"x":7,"y":29},"end":{"x":10,"y":29}}],"quality":0,"position":{"x":8.5,"y":34.5},"rotation":0,"type":"Room","name":"015"},{"lines":[{"start":{"x":-28,"y":44},"end":{"x":-28,"y":52}},{"start":{"x":-28,"y":52},"end":{"x":-20,"y":52}},{"start":{"x":-20,"y":52},"end":{"x":-20,"y":58}},{"start":{"x":-20,"y":58},"end":{"x":26,"y":58}},{"start":{"x":26,"y":58},"end":{"x":26,"y":44}},{"start":{"x":26,"y":44},"end":{"x":-28,"y":44}}],"quality":0,"position":{"x":-1,"y":51},"rotation":0,"type":"Room","name":"Laboratorij za kompozite"},{"lines":[{"start":{"x":-28,"y":52},"end":{"x":-28,"y":54}},{"start":{"x":-28,"y":54},"end":{"x":-20,"y":54}},{"start":{"x":-20,"y":54},"end":{"x":-20,"y":52}},{"start":{"x":-20,"y":52},"end":{"x":-28,"y":52}}],"quality":0,"position":{"x":-24,"y":53},"rotation":0,"type":"Room","name":"Smeti"},{"lines":[{"start":{"x":-20,"y":54},"end":{"x":-28,"y":54}},{"start":{"x":-28,"y":54},"end":{"x":-28,"y":58}},{"start":{"x":-28,"y":58},"end":{"x":-20,"y":58}},{"start":{"x":-20,"y":58},"end":{"x":-20,"y":54}}],"quality":0,"position":{"x":-24,"y":56},"rotation":0,"type":"Room","name":"Agregat"},{"lines":[{"start":{"x":13,"y":40},"end":{"x":13,"y":31}},{"start":{"x":13,"y":31},"end":{"x":18,"y":31}},{"start":{"x":18,"y":31},"end":{"x":18,"y":40}},{"start":{"x":18,"y":40},"end":{"x":13,"y":40}}],"quality":0,"position":{"x":15.5,"y":35.5},"rotation":0,"type":"Room","name":"Kem. Lab"},{"lines":[{"start":{"x":13,"y":31},"end":{"x":13,"y":29}},{"start":{"x":13,"y":29},"end":{"x":18,"y":29}},{"start":{"x":18,"y":29},"end":{"x":18,"y":31}},{"start":{"x":18,"y":31},"end":{"x":13,"y":31}}],"quality":0,"position":{"x":15.5,"y":30},"rotation":0,"type":"Room","name":"Čista soba"},{"lines":[{"start":{"x":13,"y":29},"end":{"x":13,"y":26}},{"start":{"x":13,"y":26},"end":{"x":18,"y":26}},{"start":{"x":18,"y":26},"end":{"x":18,"y":29}},{"start":{"x":18,"y":29},"end":{"x":13,"y":29}}],"quality":0,"position":{"x":15.5,"y":27.5},"rotation":0,"type":"Room","name":"Celični lab."},{"lines":[{"start":{"x":13,"y":26},"end":{"x":13,"y":23}},{"start":{"x":13,"y":23},"end":{"x":18,"y":23}},{"start":{"x":18,"y":23},"end":{"x":18,"y":26}},{"start":{"x":18,"y":26},"end":{"x":13,"y":26}}],"quality":0,"position":{"x":15.5,"y":24.5},"rotation":0,"type":"Room","name":"Zaprti del"},{"lines":[{"start":{"x":13,"y":23},"end":{"x":18,"y":23}},{"start":{"x":18,"y":23},"end":{"x":18,"y":40}},{"start":{"x":18,"y":40},"end":{"x":26,"y":40}},{"start":{"x":26,"y":40},"end":{"x":26,"y":19}},{"start":{"x":26,"y":19},"end":{"x":13,"y":19}},{"start":{"x":13,"y":19},"end":{"x":13,"y":23}}],"quality":0,"position":{"x":19.5,"y":29.5},"rotation":0,"type":"Room","name":"Lab. za karakterizacijo"},{"lines":[{"start":{"x":2,"y":19},"end":{"x":2,"y":14}},{"start":{"x":2,"y":14},"end":{"x":10,"y":14}},{"start":{"x":10,"y":14},"end":{"x":10,"y":19}},{"start":{"x":10,"y":19},"end":{"x":2,"y":19}}],"quality":0,"position":{"x":6,"y":16.5},"rotation":0,"type":"Room","name":"017 Hodnik"},{"lines":[{"start":{"x":2,"y":14},"end":{"x":2,"y":9}},{"start":{"x":2,"y":9},"end":{"x":6,"y":9}},{"start":{"x":6,"y":9},"end":{"x":6,"y":14}},{"start":{"x":6,"y":14},"end":{"x":2,"y":14}}],"quality":0,"position":{"x":4,"y":11.5},"rotation":0,"type":"Room","name":"WC Ž"},{"lines":[{"start":{"x":6,"y":14},"end":{"x":6,"y":9}},{"start":{"x":6,"y":9},"end":{"x":10,"y":9}},{"start":{"x":10,"y":9},"end":{"x":10,"y":14}},{"start":{"x":10,"y":14},"end":{"x":6,"y":14}}],"quality":0,"position":{"x":8,"y":11.5},"rotation":0,"type":"Room","name":"WC M"},{"lines":[{"start":{"x":2,"y":9},"end":{"x":2,"y":3}},{"start":{"x":2,"y":3},"end":{"x":10,"y":3}},{"start":{"x":10,"y":3},"end":{"x":10,"y":9}},{"start":{"x":10,"y":9},"end":{"x":2,"y":9}}],"quality":0,"position":{"x":6,"y":6},"rotation":0,"type":"Room","name":"Server"},{"lines":[{"start":{"x":2,"y":3},"end":{"x":2,"y":-3}},{"start":{"x":2,"y":-3},"end":{"x":10,"y":-3}},{"start":{"x":10,"y":-3},"end":{"x":10,"y":3}},{"start":{"x":10,"y":3},"end":{"x":2,"y":3}}],"quality":0,"position":{"x":6,"y":0},"rotation":0,"type":"Room","name":"Visoko zmog rač."},{"lines":[{"start":{"x":2,"y":-3},"end":{"x":2,"y":-11}},{"start":{"x":2,"y":-11},"end":{"x":10,"y":-11}},{"start":{"x":10,"y":-11},"end":{"x":10,"y":-3}},{"start":{"x":10,"y":-3},"end":{"x":2,"y":-3}}],"quality":0,"position":{"x":6,"y":-7},"rotation":0,"type":"Room","name":"IT Pisarna"},{"lines":[{"start":{"x":13,"y":14},"end":{"x":26,"y":14}},{"start":{"x":26,"y":14},"end":{"x":26,"y":-3}},{"start":{"x":26,"y":-3},"end":{"x":18,"y":-3}},{"start":{"x":18,"y":-3},"end":{"x":18,"y":2}},{"start":{"x":18,"y":2},"end":{"x":13,"y":2}},{"start":{"x":13,"y":2},"end":{"x":13,"y":14}}],"quality":0,"position":{"x":19.5,"y":5.5},"rotation":0,"type":"Room","name":"Laboratorij za mikroskopiranje"},{"lines":[{"start":{"x":13,"y":2},"end":{"x":13,"y":-3}},{"start":{"x":13,"y":-3},"end":{"x":15,"y":-3}},{"start":{"x":15,"y":-3},"end":{"x":15,"y":2}},{"start":{"x":15,"y":2},"end":{"x":13,"y":2}}],"quality":0,"position":{"x":14,"y":-0.5},"rotation":0,"type":"Room","name":""},{"lines":[{"start":{"x":15,"y":-3},"end":{"x":18,"y":-3}},{"start":{"x":18,"y":-3},"end":{"x":18,"y":2}},{"start":{"x":18,"y":2},"end":{"x":15,"y":2}},{"start":{"x":15,"y":2},"end":{"x":15,"y":-3}}],"quality":0,"position":{"x":16.5,"y":-0.5},"rotation":0,"type":"Room","name":""},{"lines":[{"start":{"x":13,"y":-3},"end":{"x":13,"y":-11}},{"start":{"x":13,"y":-11},"end":{"x":26,"y":-11}},{"start":{"x":26,"y":-11},"end":{"x":26,"y":-3}},{"start":{"x":26,"y":-3},"end":{"x":13,"y":-3}}],"quality":0,"position":{"x":19.5,"y":-7},"rotation":0,"type":"Room","name":"Kolesarnica"},{"lines":[{"start":{"x":10,"y":-11},"end":{"x":13,"y":-11}},{"start":{"x":13,"y":-11},"end":{"x":13,"y":-1}},{"start":{"x":13,"y":-1},"end":{"x":10,"y":-1}},{"start":{"x":10,"y":-1},"end":{"x":10,"y":-11}}],"quality":0,"position":{"x":11.5,"y":-6},"rotation":0,"type":"Room","name":"Sklad"},{"lines":[{"start":{"x":10,"y":44},"end":{"x":10,"y":-1}},{"start":{"x":10,"y":-1},"end":{"x":13,"y":-1}},{"start":{"x":13,"y":-1},"end":{"x":13,"y":44}},{"start":{"x":13,"y":44},"end":{"x":10,"y":44}}],"quality":0,"position":{"x":11.5,"y":21.5},"rotation":0,"type":"Room","name":"."}],"objects":[{"position":{"x":-28,"y":2},"rotation":1.5,"type":"Door"},{"position":{"x":-40,"y":1},"rotation":1.5,"type":"DoubleDoor"},{"position":{"x":-39,"y":-3},"rotation":0.5,"type":"Window"},{"position":{"x":-39,"y":-6},"rotation":0.5,"type":"Window"},{"position":{"x":-39,"y":-9},"rotation":0.5,"type":"Window"},{"position":{"x":-24,"y":-7},"rotation":0.5,"type":"Door"},{"position":{"x":-24,"y":-1},"rotation":0.5,"type":"Door"},{"position":{"x":-24,"y":-4},"rotation":0.5,"type":"Door"},{"position":{"x":-20,"y":2},"rotation":0.5,"type":"Stairs"},{"position":{"x":-28,"y":6},"rotation":1.5,"type":"DoubleDoor"},{"position":{"x":-18,"y":6},"rotation":1.5,"type":"DoubleDoor"},{"position":{"x":-24,"y":17},"rotation":0,"type":"Door"},{"position":{"x":-22,"y":17},"rotation":0,"type":"Door"},{"position":{"x":-19,"y":17},"rotation":0,"type":"Door"},{"position":{"x":-31,"y":33},"rotation":0,"type":"Door"},{"position":{"x":-39,"y":25},"rotation":0.5,"type":"Window"},{"position":{"x":-39,"y":20},"rotation":0.5,"type":"Window"},{"position":{"x":-28,"y":36},"rotation":1.5,"type":"Door"},{"position":{"x":1,"y":11},"rotation":0,"type":"Stairs"},{"position":{"x":4,"y":16},"rotation":0.5,"type":"DoubleDoor"},{"position":{"x":10,"y":36},"rotation":0,"type":"Stairs"},{"position":{"x":10,"y":20},"rotation":1.5,"type":"DoubleDoor"},{"position":{"x":-28,"y":47},"rotation":1.5,"type":"Door"},{"position":{"x":9,"y":-3},"rotation":0,"type":"Door"},{"position":{"x":5,"y":-12},"rotation":0,"type":"Window"},{"position":{"x":18,"y":-13},"rotation":1,"type":"Door"},{"position":{"x":23,"y":-13},"rotation":1,"type":"Door"},{"position":{"x":17,"y":13},"rotation":0,"type":"Window"},{"position":{"x":24,"y":13},"rotation":0,"type":"Window"},{"position":{"x":15,"y":16},"rotation":0.5,"type":"DoubleDoor"},{"position":{"x":13,"y":20},"rotation":1.5,"type":"DoubleDoor"},{"position":{"x":16,"y":23},"rotation":0,"type":"Door"},{"position":{"x":20,"y":31},"rotation":0.5,"type":"Door"},{"position":{"x":13,"y":42},"rotation":1,"type":"Door"}]}
-```
+#### Sample Floor plan SVG Data
+https://github.com/InnoRenew-CoE/grafana-floor-panel/blob/main/floor_plan.svg
+
 
 #### Note:
 The plugin is not yet signed and is not available through the grafana store.

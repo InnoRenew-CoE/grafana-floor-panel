@@ -15,6 +15,8 @@ Monitoring indoor air quality through floor plan visualization in Grafana using 
 By integrating sensors and data collection points throughout the building, Grafana can display real-time and historical air quality data on a floor plan layout.
 This enables users to easily identify areas with poor air quality and take appropriate actions to improve it, such as adjusting ventilation systems or implementing air purifiers. Overall, this approach enhances indoor air quality management and contributes to creating healthier and more comfortable environments for occupants.
 
+The plugin finds rooms in the provided floor plan SVG by looking for prefix of `room:` (example: `room:Living room`) and in the future walls with the prefix of `wall:` (example: `wall:south-east`).
+
 ### Public Dashboard Example
 https://iaq.innorenew.eu/grafana/public-dashboards/535d826acc744109b4d64a68654ee262?orgId=1&refresh=5s
 
