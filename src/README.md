@@ -1,7 +1,8 @@
 # Floor Plan Indoor Air Quality monitoring
 <p style="text-align:center; opacity: 0.5">(soon interactive)</p>
 
-![img.png](https://github.com/MihaelBercic/grafana-floor-panel/blob/main/src/img/floor-plan-humidity.png?raw=true)
+![img.png](https://github.com/MihaelBercic/grafana-floor-panel/blob/main/src/img/iaq.png?raw=true)
+![img.png](https://github.com/MihaelBercic/grafana-floor-panel/blob/main/src/img/humidity.png?raw=true)
 
 ### Features
 - [x] Air Quality rendering
