@@ -1,591 +1,141 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {DataFrame, FieldColorModeId, fieldColorModeRegistry} from '@grafana/data';
-import {css, cx} from '@emotion/css';
-import {useStyles2, useTheme2} from '@grafana/ui';
-import {FloorRenderer} from "./FloorRender";
-import {CanvasElement, Room} from "../@types/Graphics";
-import {Measurement, SensorData} from "../@types/QueryData";
-import {parseInt, toNumber} from "lodash";
+import React, {useCallback, useState} from 'react';
+import {FieldColorModeId, fieldColorModeRegistry} from '@grafana/data';
+import {useTheme2} from '@grafana/ui';
 import {Props} from "../@types/PanelProps";
-import {getStyles} from "./PanelStyle";
-import {SimpleOptions} from "../types";
-import {RoomDrawer} from "./RoomDrawer";
+import {SensorData, Series} from "../@types/QueryData";
+import {Room} from "../@types/Graphics";
+import Rainbow from "rainbowvis.js";
+import {now} from "lodash";
+
+type Color = {
+    name: string,
+    value: number
+}
 
 export const SimplePanel: React.FC<Props> = ({options, data, width, height, fieldConfig}) => {
+    let theme = useTheme2()
+
     const fieldColor = fieldConfig.defaults.color || {mode: FieldColorModeId.ContinuousGrYlRd};
     const fieldColorMode = fieldColorModeRegistry.get(fieldColor.mode);
     const [roomMetrics] = useState(() => new Map<string, number>());
+    const [rooms, setRooms] = useState<Room[]>(() => []);
     const [interval] = useState({id: 0});
-    const [floorRenderer] = useState(() => new FloorRenderer());
-    const [currentRoom, setCurrentRoom] = useState(() => undefined as (Room | undefined))
-    const [settings] = useState(() => ({colors: ["green", "orange", "yellow"], recompute: false}))
+    const [rainbow] = useState(() => new Rainbow());
+    const [container, setContainer] = useState<SVGElement | undefined>(undefined);
+    const [settings] = useState<{ colors: Color[] }>(() => ({colors: [{name: "transparent", value: 0}]}))
+    const [lastUpdate, setLastUpdate] = useState<number>(0);
 
-    const jsonData: { rooms: Room[], objects: CanvasElement[] } = JSON.parse(options["json"]);
-    if (JSON.stringify(floorRenderer.rooms) !== JSON.stringify(jsonData.rooms)) {
-        floorRenderer.rooms = jsonData.rooms;
-        floorRenderer.objects = jsonData.objects;
-        settings.recompute = true;
-    } else settings.recompute = false;
-    floorRenderer.onRoomSelection = (room: Room | undefined) => {
-        setCurrentRoom(room);
-    }
-    useEffect(() => {
-        if (currentRoom) {
-            floorRenderer.redraw()
-            floorRenderer.colorRoom(currentRoom, "rgba(110,139,255,0.78)")
-        }
-    }, [currentRoom, floorRenderer])
-
-    const x = {
-        "state": "Done", "series": [
-            {
-                "refId": "A",
-                "meta": {
-                    "typeVersion": [0, 0],
-                    "executedQueryString": "site_results = from(bucket: \"iaq\")\n  |> range(start: 2024-05-21T06:31:37.883Z, stop: 2024-05-21T06:36:37.884Z)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"iaq_data\")\n  |> filter(fn: (r) => r[\"building\"] == \"innorenew\")\n\nsensor_ids = site_results \n  |> map(fn: (r) => ({r with _value: string(v:r._value)}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\", \"sensor_id\"])\n\nmapped_sensors = sensor_ids\n  |> truncateTimeColumn(unit: 1m)\n  |> pivot(rowKey: [\"_time\", \"_field\"], columnKey: [\"sensor_id\"], valueColumn: \"_value\")\n  |> group(columns: [\"_time\"])\n\nmapped_sensors\n"
-                },
-                "fields": [{
-                    "name": "_field",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:31:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["RH", "abs_humidity", "co2", "dew_point", "luminance", "temperature", "turned_on", "voc_acc", "voc_eq_co2", "voc_index"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-00",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:31:00 +0000 UTC"},
-                    "config": {},
-                    "values": [null, null, null, null, null, null, null, null, null, null],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-01",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:31:00 +0000 UTC"},
-                    "config": {},
-                    "values": [null, null, null, null, null, null, null, null, null, null],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-02",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:31:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["46.2089", "11.0168", "415.297", "13.2473", "0", "25.6655", "11218710", "NULL", "409", "409"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-03",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:31:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["54.6563", "12.0718", "464.1105", "14.5874", "10.5984", "24.3063", "396704", "NULL", "415", "415"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-04",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:31:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["46.1952", "10.1814", "431.5279", "11.9719", "0.2304", "24.2689", "4629290", "NULL", "740", "740"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-06",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:31:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["67.2984", "13.2245", "413.1007", "15.9007", "0.9216", "22.2555", "22370644", "NULL", "475", "475"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-07",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:31:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["60.5158", "12.8111", "423.7047", "15.473", "0.0576", "23.5586", "18190872", "NULL", "519", "519"],
-                    "entities": {},
-                    "state": null
-                }],
-                "length": 10
-            },
-            {
-                "refId": "A",
-                "fields": [{
-                    "name": "_field",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:32:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["RH", "abs_humidity", "co2", "dew_point", "luminance", "temperature", "turned_on", "voc_acc", "voc_eq_co2", "voc_index"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-00",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:32:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["51.7128", "12.0463", "462.1115", "14.6039", "24.8256", "25.2516", "15965952", "NULL", "759", "759"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-01",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:32:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["47.3274", "11.6112", "435.6695", "14.0825", "0.2304", "26.1782", "18190864", "NULL", "595", "595"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-02",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:32:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["46.2272", "10.9948", "415.1926", "13.2145", "0", "25.6227", "11218760", "NULL", "400", "400"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-03",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:32:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["54.609", "12.0795", "461.6917", "14.5987", "10.5408", "24.333", "396754", "NULL", "406", "406"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-04",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:32:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["46.2425", "10.1826", "431.9185", "11.9729", "0.1728", "24.2529", "4629340", "NULL", "726", "726"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-06",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:32:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["67.3396", "13.2326", "413.0111", "15.9103", "0.9792", "22.2555", "22370692", "NULL", "489", "489"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-07",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:32:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["60.4593", "12.8089", "422.7986", "15.471", "0.0576", "23.5719", "18190920", "NULL", "518", "518"],
-                    "entities": {},
-                    "state": null
-                }],
-                "length": 10
-            },
-            {
-                "refId": "A",
-                "fields": [{
-                    "name": "_field",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:33:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["RH", "abs_humidity", "co2", "dew_point", "luminance", "temperature", "turned_on", "voc_acc", "voc_eq_co2", "voc_index"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-00",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:33:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["51.7159", "12.0579", "463.9801", "14.6195", "25.2864", "25.2676", "15966002", "NULL", "755", "755"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-01",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:33:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["47.3075", "11.6253", "437.0763", "14.1028", "0.1728", "26.2075", "18190912", "NULL", "608", "608"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-02",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:33:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["46.2242", "10.9859", "416.2967", "13.2013", "0", "25.6094", "11218810", "NULL", "403", "403"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-03",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:33:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["54.6654", "12.0629", "462.5604", "14.5751", "10.5408", "24.2902", "396804", "NULL", "426", "426"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-04",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:33:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["46.2562", "10.1857", "433.7919", "11.9774", "0.2304", "24.2529", "4629390", "NULL", "735", "735"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-06",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:33:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["67.3365", "13.2218", "412.6758", "15.8968", "0.9216", "22.2421", "22370744", "NULL", "486", "486"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-07",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:33:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["60.4456", "12.7963", "420.4224", "15.4549", "0.0576", "23.5586", "18190972", "NULL", "526", "526"],
-                    "entities": {},
-                    "state": null
-                }],
-                "length": 10
-            },
-            {
-                "refId": "A",
-                "fields": [{
-                    "name": "_field",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:34:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["RH", "abs_humidity", "co2", "dew_point", "luminance", "temperature", "turned_on", "voc_acc", "voc_eq_co2", "voc_index"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-00",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:34:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["51.7128", "12.0463", "461.7921", "14.6039", "25.5168", "25.2516", "15966052", "NULL", "751", "751"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-01",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:34:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["47.3167", "11.6189", "435.6394", "14.0936", "0.2304", "26.1942", "18191012", "NULL", "609", "609"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-02",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:34:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["46.1723", "11.0081", "418.2274", "13.2351", "0", "25.6655", "11218860", "NULL", "403", "403"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-03",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:34:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["54.6746", "12.0649", "461.738", "14.5777", "11.1744", "24.2902", "396854", "NULL", "425", "425"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-04",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:34:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["46.305", "10.1887", "434.4722", "11.9813", "0.2304", "24.2395", "4629440", "NULL", "743", "743"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-06",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:34:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["67.3167", "13.2179", "413.521", "15.8922", "0.9216", "22.2421", "22370792", "NULL", "484", "484"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-07",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:34:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["60.4334", "12.7937", "421.7139", "15.4517", "0.0576", "23.5586", "18191022", "NULL", "521", "521"],
-                    "entities": {},
-                    "state": null
-                }],
-                "length": 10
-            }, {
-                "refId": "A",
-                "fields": [{
-                    "name": "_field",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:35:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["RH", "abs_humidity", "co2", "dew_point", "luminance", "temperature", "turned_on", "voc_acc", "voc_eq_co2", "voc_index"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-00",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:35:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["51.6442", "12.0412", "461.7366", "14.598", "25.056", "25.2676", "15966102", "NULL", "764", "764"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-01",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:35:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["47.2953", "11.6137", "435.9547", "14.0866", "0.2304", "26.1942", "18191064", "NULL", "606", "606"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-02",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:35:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["46.1311", "11.0262", "419.9609", "13.2627", "0", "25.7109", "11218910", "NULL", "415", "415"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-03",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:35:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["54.5922", "12.0576", "459.5851", "14.5692", "10.2528", "24.3063", "396955", "NULL", "439", "439"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-04",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:35:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["46.3142", "10.183", "434.9754", "11.9721", "0.2304", "24.2262", "4629540", "NULL", "734", "734"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-06",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:35:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["67.2938", "13.2033", "415.503", "15.8742", "0.9216", "22.2287", "22370892", "NULL", "481", "481"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-07",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:35:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["60.4364", "12.8041", "420.9641", "15.465", "0.0576", "23.5719", "18191072", "NULL", "517", "517"],
-                    "entities": {},
-                    "state": null
-                }],
-                "length": 10
-            }, {
-                "refId": "A",
-                "fields": [{
-                    "name": "_field",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:36:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["RH", "abs_humidity", "co2", "dew_point", "luminance", "temperature", "turned_on", "voc_acc", "voc_eq_co2", "voc_index"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-00",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:36:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["51.725", "12.0492", "460.999", "14.6075", "24.9984", "25.2516", "15966152", "NULL", "761", "761"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-01",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:36:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["47.3167", "11.6189", "436.5222", "14.0936", "0.2304", "26.1942", "18191112", "NULL", "605", "605"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-02",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:36:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["46.1494", "11.0108", "418.8579", "13.2397", "0", "25.6788", "11218961", "NULL", "400", "400"],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-03",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:36:00 +0000 UTC"},
-                    "config": {},
-                    "values": [null, null, null, null, null, null, null, null, null, null],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-04",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:36:00 +0000 UTC"},
-                    "config": {},
-                    "values": [null, null, null, null, null, null, null, null, null, null],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-06",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:36:00 +0000 UTC"},
-                    "config": {},
-                    "values": [null, null, null, null, null, null, null, null, null, null],
-                    "entities": {},
-                    "state": null
-                }, {
-                    "name": "ir-07",
-                    "type": "string",
-                    "typeInfo": {"frame": "string", "nullable": true},
-                    "labels": {"_time": "2024-05-21 06:36:00 +0000 UTC"},
-                    "config": {},
-                    "values": ["60.4547", "12.7885", "421.2397", "15.4447", "0.1152", "23.5452", "18191122", "NULL", "517", "517"],
-                    "entities": {},
-                    "state": null
-                }],
-                "length": 10
-            }], "annotations": [], "request": {
-            "app": "panel-editor",
-            "requestId": "Q4923",
-            "timezone": "browser",
-            "panelId": 41,
-            "panelPluginId": "innorenew-iaq-panel",
-            "dashboardUID": "Ih6kHTFVz",
-            "range": {"from": "2024-05-21T06:31:37.883Z", "to": "2024-05-21T06:36:37.884Z", "raw": {"from": "now-5m", "to": "now"}},
-            "timeInfo": "",
-            "interval": "200ms",
-            "intervalMs": 200,
-            "targets": [{
-                "datasource": {"type": "influxdb", "uid": "CRKpl2FVk"},
-                "query": "site_results = from(bucket: \"iaq\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"iaq_data\")\n  |> filter(fn: (r) => r[\"building\"] == \"innorenew\")\n\nsensor_ids = site_results \n  |> map(fn: (r) => ({r with _value: string(v:r._value)}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\", \"sensor_id\"])\n\nmapped_sensors = sensor_ids\n  |> truncateTimeColumn(unit: 1m)\n  |> pivot(rowKey: [\"_time\", \"_field\"], columnKey: [\"sensor_id\"], valueColumn: \"_value\")\n  |> group(columns: [\"_time\"])\n\nmapped_sensors\n",
-                "refId": "A"
-            }],
-            "maxDataPoints": 1488,
-            "scopedVars": {"__interval": {"value": "$__interval"}, "__interval_ms": {"value": "$__interval_ms"}},
-            "startTime": 1716273397884,
-            "filters": [],
-            "endTime": 1716273398025
-        }, "timings": {"dataProcessingTime": 1}, "structureRev": 2
-    }
-
-    const sensorData: SensorData[] = mapSensorDataFromSeries(data.series)
-    console.log("SENSOR DATA:")
-    console.log(sensorData);
-    const mappedByTime: Map<string, Map<string, Map<string, string>>> = sensorData.reduce((map, sensor) => {
-        const sensorMap = map.get(sensor.time) ?? new Map();
-        const measurementMap: Map<string, string> = sensor.measurements.reduce((measurementMap, measurement) => {
-            measurementMap.set(measurement.field, measurement.value);
-            return measurementMap;
-        }, new Map<string, string>())
-        sensorMap.set(sensor.sensorId, measurementMap);
-        map.set(sensor.time, sensorMap);
-        return map;
-    }, new Map<string, Map<string, Map<string, string>>>());
-    let theme = useTheme2()
     if (fieldColorMode.getColors) {
-        settings.colors = fieldColorMode.getColors(theme)
+        const colors = fieldColorMode.getColors(theme)
+        settings.colors = colors.map((x, i) => ({name: x, value: i / colors.length}));
+    } else if (fieldColorMode.id === "thresholds") {
+        const colors = fieldConfig.defaults.thresholds?.steps.map(x => ({name: x.color, value: Math.max(x.value, 0)}))
+        settings.colors = colors.sort((a, b) => a.value - b.value);
+    }
+    rainbow.setSpectrumByArray(settings.colors.map(x => theme.visualization.getColorByName(x.name)))
+    const all: Room[] = parseRooms(options.svg).map(name => ({name: name, quality: 80}));
+    if (all.some(x => !rooms.some(y => x.name === y.name))) {
+        setRooms(all)
     }
 
-    const canvasRef = useCallback((node: HTMLCanvasElement) => {
-        if (node && node as HTMLCanvasElement) {
-            setCanvasCallback(floorRenderer, node, width,
-                height, options, settings.colors
-                , mappedByTime, roomMetrics, settings.recompute)
-            if (currentRoom) {
-                floorRenderer.redraw()
-                floorRenderer.colorRoom(currentRoom, "rgba(110,139,255,0.78)")
-            }
-            floorRenderer.redraw()
+    if (now() - lastUpdate > 3000) {
+        setLastUpdate(now())
+        const measurements: SensorData[] = mapData(data.series as unknown as Series[]);
+        const sensorMappings: Map<string, string> = new Map(options.sensorMappings ? JSON.parse(options.sensorMappings) : []);
+        for (let sensorData of measurements) {
+            const room = sensorMappings.get(sensorData.id);
+            if (!room) continue;
+            const values = sensorData.values;
+            const iaq = calculateIAQ(values.get("CO2"), values.get("temperature"), 0, values.get("VOC_index")); // + random(-50, 50, false);
+            roomMetrics.set(room, iaq)
+            console.log(values)
         }
-    }, [width, height, settings, options, mappedByTime, roomMetrics, currentRoom, floorRenderer])
+    }
 
     clearInterval(interval.id);
-    interval.id = window.setInterval(() => animateQualityTransition(floorRenderer, roomMetrics, interval.id), 100);
-    const styles = useStyles2(getStyles);
+    if (container) {
+        interval.id = window.setInterval(() => animateQualityTransition(rainbow, settings.colors, container, rooms, roomMetrics, interval.id), 50);
+    }
+    const svgRef = useCallback((node) => {
+        if (node instanceof HTMLElement) {
+            node.innerHTML = options.svg;
+            const svg = node.getElementsByTagName("svg")[0];
+            if (svg) {
+                setContainer(svg)
+                svg.removeAttribute("width");
+                svg.removeAttribute("height");
+            }
+        }
+    }, [options])
+    const colorsCount = settings.colors.length;
+    const firstColor = theme.visualization.getColorByName(settings.colors[0].name);
+    const lastColor =theme.visualization.getColorByName(settings.colors[colorsCount - 1].name);
+
     return (
-        <div style={{position: "relative", display: "flex"}}>
-            <canvas className={cx(styles.wrapper, css`width: ${width}px; height: ${height}px;`)} ref={canvasRef}/>
-            <RoomDrawer currentRoom={currentRoom} onClose={() => setCurrentRoom(undefined)}/>
+        <div style={{display:"grid", gap: "2em",  gridTemplateRows: "1fr auto", flexWrap: "wrap", width: width, height: height}}>
+            <div ref={svgRef} style={{overflow: "hidden", width: "100%", height: "100%", display: "flex", alignItems: "stretch", justifyContent: "center"}}>
+            </div>
+
+            <div style={{display: "flex", justifyContent: "center", alignItems: "center"}}>
+                <div style={{maxWidth: "300px", width: "80%"}}>
+                    <div style={{borderRadius: "3px", padding: "0.5em", background: `linear-gradient(90deg, ${firstColor} 0%, ${lastColor} 100%)`}}></div>
+                    <div style={{display: "flex", alignItems: "stretch", justifyContent: "space-between"}}>
+                        <span>Bad</span>
+                        <span>Good</span>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
 
+export function mapData(series: Series[]) {
+    return series.map(s => {
+        const time = s.fields.find(x => x.name === "_time")?.values?.get(0) as number ?? Date.now();
+        const fieldOrder = s.fields.find(x => x.name === "_field");
+        if (!fieldOrder) return null;
+        const fields = fieldOrder.values;
+        const sensorId = fieldOrder.labels.sensor_id;
+        const fieldValues = s.fields.find(x => x.name === "_value")?.values ?? [];
+        const valueMap = new Map<string, number>();
+        for (let i = 0; i < fields.length; i++) {
+            valueMap.set(fields[i], parseFloat(fieldValues[i]));
+        }
+        return {id: sensorId, values: valueMap, time: time} as SensorData
+    }).filter(x => x) as SensorData[];
+}
+
 /**
  * Slowly and smoothly recolors rooms to avoid flickering
- * @param floorRenderer
+ * @param rainbow
+ * @param colors
+ * @param container
+ * @param rooms
  * @param roomMetrics
  * @param intervalId
  */
-function animateQualityTransition(floorRenderer: FloorRenderer, roomMetrics: Map<string, number>, intervalId: number) {
-    const rooms = floorRenderer.rooms.filter(room => roomMetrics.get(room.name) && roomMetrics.get(room.name) !== room.quality);
-    rooms.forEach(room => {
+function animateQualityTransition(rainbow: Rainbow, colors: Color[], container: SVGElement, rooms: Room[], roomMetrics: Map<string, number>, intervalId: number) {
+    const redrawNeeded = rooms.filter(room => {
+        const metric = roomMetrics.get(room.name);
+        if (!metric) return false;
+        return metric !== room.quality;
+    });
+    redrawNeeded.forEach(room => {
         const desiredIAQ = roomMetrics.get(room.name);
         if (desiredIAQ) {
             const difference = Math.abs(desiredIAQ - room.quality);
             const add = desiredIAQ > room.quality ? 1 : -1;
             room.quality += (add * Math.min(difference, 1));
+            const roomElement = container.querySelector(`#room\\:${room.name.replace(/\./g, "\\.")}`);
+            if (roomElement) {
+                createOrModifyRadialGradient(container, {name: rainbow.colorAt(room.quality), value: 0}, room);
+                roomElement.setAttribute("fill", `url(#rg${room.name})`)
+                //roomElement.setAttribute("fill", `#${rainbow.colorAt(room.quality)}`)
+                roomElement.setAttribute("fill-opacity", "1")
+            }
         }
     })
-    if (rooms.length > 0) floorRenderer.redraw()
-    if (rooms.length === 0) {
-        console.log(`I did Fixed rooms ${Date.now()}`)
+    if (redrawNeeded.length === 0) {
         clearInterval(intervalId)
     }
 }
@@ -600,115 +150,30 @@ function animateQualityTransition(floorRenderer: FloorRenderer, roomMetrics: Map
 function calculateIAQ(co2: number, temp: number, rh: number, voc: number) {
     const co2Index = Math.min(6, Math.round(co2 / 400)); // 1 - 6
     const vocIndex = Math.min(6, Math.round(voc / 50)); // 1 - 6
-    const best = 0
+    const worstOfTheTwo = Math.max(co2Index, vocIndex);
     const worst = 6
     const aqi = Math.min(Math.max(0, 100.0 - (100 * (co2Index / worst))), 100)
-    console.log(`${co2} ${co2Index} ${worst} => ${co2 / 400} ${co2Index / worst} ${aqi}`)
     return aqi ?? 0.0;
 }
 
-/**
- * Sets the canvas reference of the [floorRenderer] and sets DPI settings in order to have a crisp visualization.
- * @param floorRenderer
- * @param node
- * @param width
- * @param height
- * @param options
- * @param colors
- * @param mappedByTime
- * @param roomMetrics
- * @param recompute
- */
-function setCanvasCallback(floorRenderer: FloorRenderer, node: HTMLCanvasElement, width: number, height: number, options: SimpleOptions, colors: string[], mappedByTime: Map<string, Map<string, Map<string, string>>>, roomMetrics: Map<string, number>, recompute = false) {
-    const previousWidth = parseInt(floorRenderer?.canvas?.style?.width ?? "0");
-    const previousHeight = parseInt(floorRenderer?.canvas?.style?.height ?? "0");
-    floorRenderer.setCanvasNode(node);
-    if (recompute || previousWidth !== width || previousHeight !== height) {
-        floorRenderer.dpiFix(width, height);
-        const points = floorRenderer.rooms.flatMap(room => room.lines.flatMap(line => [line.end, line.start]))
-        const leastX = points.reduce((previousValue, point) => {
-            const x = point.x;
-            return x <= previousValue ? x : previousValue;
-        }, 0)
-        const mostX = points.reduce((previousValue, point) => {
-            const x = point.x;
-            return x >= previousValue ? x : previousValue;
-        }, 0)
-        const leastY = points.reduce((previousValue, point) => {
-            const y = point.y;
-            return y <= previousValue ? y : previousValue;
-        }, 0)
-        const mostY = points.reduce((previousValue, point) => {
-            const y = point.y;
-            return y >= previousValue ? y : previousValue;
-        }, 0)
-        const transformedMinX = floorRenderer.transformFakeToDrawable({x: leastX, y: 0}).x;
-        const transformedMaxX = floorRenderer.transformFakeToDrawable({x: mostX, y: 0}).x;
-        const transformedMinY = floorRenderer.transformFakeToDrawable({x: 0, y: leastY}).y;
-        const transformedMaxY = floorRenderer.transformFakeToDrawable({x: 0, y: mostY}).y;
-        const distanceX = transformedMaxX - transformedMinX
-        const distanceY = transformedMinY - transformedMaxY
-        const ratioX = width / distanceX;
-        const ratioY = height / distanceY;
-        const ratio = Math.min(1, ratioY, ratioX);
-        const pointSize = 20 * ratio
-        floorRenderer.scale = ratio
-        floorRenderer.pointSize = pointSize;
-        floorRenderer.halfPointSize = pointSize / 2;
-        floorRenderer.lineWidth = ratio;
-        floorRenderer.canvasOffset = {x: distanceX * ratioX / 2 || 0, y: distanceY * ratioY / 1.25 || 0}
-    }
-    floorRenderer.setColors(colors);
-    const roomMap: Map<string, string> = new Map(options?.sensorMappings ? JSON.parse(options.sensorMappings) : [])
-    const times = Array.from(mappedByTime.keys()).reverse();
-    const latestTime = times[0];
-    const latestSeries = mappedByTime.get(latestTime);
-    if (latestSeries) {
-        [latestSeries].forEach((sensorMap, time) => {
-            sensorMap.forEach((value, key) => {
-                const rh = value.get("RH");
-                const co2 = value.get("co2");
-                const voc_index = value.get("voc_index");
-                const temp = value.get("temperature");
-                // "RH", "abs_humidity", "co2", "dew_point", "luminance", "temperature", "turned_on", "voc_acc", "voc_eq_co2", "voc_index"
-                const roomName = roomMap.get(key);
-                console.log(`Calculating iaq for room ${roomName} with sensor ${key}`)
-                const iaq = calculateIAQ(toNumber(co2), toNumber(temp), toNumber(rh), toNumber(voc_index))
-                const room = floorRenderer.rooms.find(x => x.name === roomName);
-                if (room && roomName) { // TODO: Check if this is a bug...
-                    if (!roomMetrics.get(roomName)) {
-                        room.quality = iaq;
-                    }
-                    roomMetrics.set(roomName, iaq);
-                }
-            });
-        })
-    }
+export function parseRooms(svg: string) {
+    const parser = new DOMParser();
+    const parsed = parser.parseFromString(svg, "image/svg+xml");
+    const rooms = parsed.querySelectorAll('[id*="room"]')
+    const roomNames: string[] = ([...rooms].map(x => x.id.replace(/room:/g, "")))
+    return roomNames;
 }
 
-/**
- * Maps DataFrame[] into usable SensorData[].
- * @param series
- */
-export function mapSensorDataFromSeries(series: DataFrame[]): SensorData[] {
-    return series.reduce((data, series) => {
-        const fields = series.fields;
-        const fieldOrderValues = fields.find(x => x.name === "_field")?.values
-        console.log(fieldOrderValues)
-        if (!fieldOrderValues) return data;
-        // const fieldOrder: string[] | undefined = fieldOrderValues["buffer"];
-        // console.log(fieldOrderValues)
-        // if (!fieldOrder) return data;
-        const time = fields[0]?.labels?._time ?? "Now";
-        return [...data, ...fields.filter(x => x.name !== "_field").map(sensor => {
-            const measurements = sensor.values.map((value, index) => ({field: fieldOrderValues[index], value: value} as Measurement))
-            const sensorData: SensorData = {
-                sensorId: sensor.name,
-                time: time,
-                measurements: measurements
-            }
-            console.log(sensorData)
-            return sensorData;
-        })];
-    }, [] as SensorData[]);
+function createOrModifyRadialGradient(container: SVGElement, rightColor: Color, room: Room) {
+    let gradientElement = container.querySelector(`#rg${room.name.replace(/\./g, "\\.")}`);
+    if (!gradientElement) {
+        gradientElement = document.createElementNS("http://www.w3.org/2000/svg", "radialGradient");
+        gradientElement.setAttribute("id", `rg${room.name}`);
+        container.appendChild(gradientElement);
+    }
+    gradientElement.setAttribute("r", "0%")
+    gradientElement.innerHTML = `
+    <stop offset="0.1" stop-color="transparent" />
+    <stop offset="1" stop-color="#${rightColor.name}" />
+    `;
 }

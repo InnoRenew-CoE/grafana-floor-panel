@@ -7,17 +7,17 @@ export const plugin = new PanelPlugin<SimpleOptions>(SimplePanel)
         .useFieldConfig()
         .setPanelOptions(builder => {
             builder.addTextInput({
-                name: "json",
-                path: "json",
-                defaultValue: `{"rooms":[], "objects": []}`,
+                name: "Floor plan SVG",
+                path: "svg",
+                settings: {useTextarea: true},
+                defaultValue: ``,
                 category: ["Floor Plan"]
             })
             builder.addCustomEditor({
                 editor: RoomSensorPicker,
                 id: "sensorMappings",
+                name: "Sensor picker",
                 path: 'sensorMappings',
-                name: 'Floor plan JSON',
-                description: 'JSON for the floor plan.',
                 category: ["Floor Plan"],
             })
         })

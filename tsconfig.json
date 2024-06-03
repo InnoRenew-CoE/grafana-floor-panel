@@ -3,6 +3,7 @@
   "compilerOptions": {
     "noUnusedLocals": false,
     "strictPropertyInitialization": false,
-    "suppressImplicitAnyIndexErrors": true
+    "suppressImplicitAnyIndexErrors": true,
+    "target": "esnext"
   }
 }

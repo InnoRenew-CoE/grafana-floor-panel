@@ -1,20 +1,18 @@
 import React from "react";
 import {StandardEditorProps} from "@grafana/data";
 import {Select} from "@grafana/ui";
-import {SensorData} from "../@types/QueryData";
-import {Room} from "../@types/Graphics";
-import {mapSensorDataFromSeries} from "./SimplePanel";
+import {SensorData, Series} from "../@types/QueryData";
+import {mapData, parseRooms} from "./SimplePanel";
 
 export const RoomSensorPicker = ({value, onChange, context}: StandardEditorProps<string>) => {
-    const optionsJson = context?.options?.json;
-    const series = (context?.data ?? []);
-    if (!series || !optionsJson || series.length === 0) {
+    const options = context?.options;
+    const series = (context?.data ?? []) as unknown as Series[];
+    if (!series || !options.svg || series.length === 0) {
         return <div>No sensors detected yet!</div>
     }
-    const sensorData: SensorData[] = mapSensorDataFromSeries(series)
-    const data: { rooms: Room[] } = JSON.parse(optionsJson as string);
-    const roomNames = data.rooms.map(room => room.name);
-    const sensorNames = [...new Set(sensorData.map(x => x.sensorId))].map((id, index) => ({label: id, value: id, key: index}))
+    const roomNames = parseRooms(options.svg);
+    const sensorData: SensorData[] = mapData(series)
+    const sensorNames = [...new Set(sensorData.map(x => x.id))].map((id, index) => ({label: id, value: id, key: index}))
     const map: Map<string, string> = new Map(value ? JSON.parse(value as string) : []);
     const update = (room: string, sensor: string | undefined) => {
         if (!sensor) {
