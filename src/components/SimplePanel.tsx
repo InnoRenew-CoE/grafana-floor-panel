@@ -14,7 +14,6 @@ type Color = {
 
 export const SimplePanel: React.FC<Props> = ({options, data, width, height, fieldConfig}) => {
     let theme = useTheme2()
-
     const fieldColor = fieldConfig.defaults.color || {mode: FieldColorModeId.ContinuousGrYlRd};
     const fieldColorMode = fieldColorModeRegistry.get(fieldColor.mode);
     const [roomMetrics] = useState(() => new Map<string, number>());
@@ -46,9 +45,8 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
             const room = sensorMappings.get(sensorData.id);
             if (!room) continue;
             const values = sensorData.values;
-            const iaq = calculateIAQ(values.get("CO2"), values.get("temperature"), 0, values.get("VOC_index")); // + random(-50, 50, false);
+            const iaq = calculateIAQ(values.get("CO2") || values.get("co2"), values.get("temperature"), 0, values.get("VOC_index")); // + random(-50, 50, false);
             roomMetrics.set(room, iaq)
-            console.log(values)
         }
     }
 
