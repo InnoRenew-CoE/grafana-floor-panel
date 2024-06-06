@@ -14,7 +14,6 @@ type Color = {
 
 export const SimplePanel: React.FC<Props> = ({options, data, width, height, fieldConfig}) => {
     let theme = useTheme2()
-
     const fieldColor = fieldConfig.defaults.color || {mode: FieldColorModeId.ContinuousGrYlRd};
     const fieldColorMode = fieldColorModeRegistry.get(fieldColor.mode);
     const [roomMetrics] = useState(() => new Map<string, number>());
@@ -46,9 +45,8 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
             const room = sensorMappings.get(sensorData.id);
             if (!room) continue;
             const values = sensorData.values;
-            const iaq = calculateIAQ(values.get("CO2"), values.get("temperature"), 0, values.get("VOC_index")); // + random(-50, 50, false);
+            const iaq = calculateIAQ(values.get("CO2") || values.get("co2"), values.get("temperature"), 0, values.get("VOC_index")); // + random(-50, 50, false);
             roomMetrics.set(room, iaq)
-            console.log(values)
         }
     }
 
@@ -69,10 +67,10 @@ export const SimplePanel: React.FC<Props> = ({options, data, width, height, fiel
     }, [options])
     const colorsCount = settings.colors.length;
     const firstColor = theme.visualization.getColorByName(settings.colors[0].name);
-    const lastColor =theme.visualization.getColorByName(settings.colors[colorsCount - 1].name);
+    const lastColor = theme.visualization.getColorByName(settings.colors[colorsCount - 1].name);
 
     return (
-        <div style={{display:"grid", gap: "2em",  gridTemplateRows: "1fr auto", flexWrap: "wrap", width: width, height: height}}>
+        <div style={{display: "grid", gap: "2em", gridTemplateRows: "1fr auto", flexWrap: "wrap", width: width, height: height}}>
             <div ref={svgRef} style={{overflow: "hidden", width: "100%", height: "100%", display: "flex", alignItems: "stretch", justifyContent: "center"}}>
             </div>
 
@@ -126,19 +124,22 @@ function animateQualityTransition(rainbow: Rainbow, colors: Color[], container: 
             const difference = Math.abs(desiredIAQ - room.quality);
             const add = desiredIAQ > room.quality ? 1 : -1;
             room.quality += (add * Math.min(difference, 1));
-            const roomElement = container.querySelector(`#room\\:${room.name.replace(/\./g, "\\.")}`);
-            if (roomElement) {
-                createOrModifyRadialGradient(container, {name: rainbow.colorAt(room.quality), value: 0}, room);
-                roomElement.setAttribute("fill", `url(#rg${room.name})`)
-                //roomElement.setAttribute("fill", `#${rainbow.colorAt(room.quality)}`)
-                roomElement.setAttribute("fill-opacity", "1")
-            }
+        }
+    })
+    rooms.filter(r => roomMetrics.get(r.name)).forEach((room) => {
+        const roomElement = container.querySelector(`#room\\:${room.name.replace(/\./g, "\\.")}`);
+        if (roomElement) {
+            createOrModifyRadialGradient(container, {name: rainbow.colorAt(room.quality), value: 0}, room);
+            roomElement.setAttribute("fill", `url(#rg${room.name})`)
+            //roomElement.setAttribute("fill", `#${rainbow.colorAt(room.quality)}`)
+            roomElement.setAttribute("fill-opacity", "1")
         }
     })
     if (redrawNeeded.length === 0) {
         clearInterval(intervalId)
     }
 }
+
 
 /**
  * Calculates Indoor Air Quality based on a few parameters.
