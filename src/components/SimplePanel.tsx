@@ -129,7 +129,6 @@ function animateQualityTransition(rainbow: Rainbow, colors: Color[], container: 
     rooms.filter(r => roomMetrics.get(r.name)).forEach((room) => {
         const roomElement = container.querySelector(`#room\\:${room.name.replace(/\./g, "\\.")}`);
         if (roomElement) {
-            console.log("Filling room...")
             createOrModifyRadialGradient(container, {name: rainbow.colorAt(room.quality), value: 0}, room);
             roomElement.setAttribute("fill", `url(#rg${room.name})`)
             //roomElement.setAttribute("fill", `#${rainbow.colorAt(room.quality)}`)
