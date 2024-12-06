@@ -126,6 +126,3 @@ from(bucket: "iaq")
 #### Sample Floor plan SVG Data
 https://github.com/InnoRenew-CoE/grafana-floor-panel/blob/main/floor_plan.svg
 
-
-#### Note:
-The plugin is not yet signed and is not available through the grafana store.
