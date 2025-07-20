@@ -37,7 +37,7 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height, fie
     settings.colors = colors.sort((a, b) => a.value - b.value);
   }
   roomRainbow.setSpectrumByArray(settings.colors.map((x) => theme.visualization.getColorByName(x.name)));
-  wallRainbow.setSpectrumByArray(['yellow', 'green', 'cyan']);
+  wallRainbow.setSpectrumByArray(['#1E90FF', '#4B9FE1', '#7C8ED3', '#AD7DC5', '#D46CBA']);
 
   const allRooms: Room[] = parseRooms(options.svg).map((name) => ({ name: name, quality: 80 }));
   if (allRooms.some((x) => !rooms.some((y) => x.name === y.name))) {
@@ -239,11 +239,11 @@ function animateQualityTransition(
     .forEach((wall) => {
       const wallElement = container.querySelector(`#wall\\:${wall.name.replace(/\./g, '\\.')}`);
       if (wallElement) {
-        for (const child of wallElement.children) {
-          colorWall(id, container, { name: wallRainbow.colorAt(wall.humidity), value: 0 }, wall);
-          child.setAttribute('fill', `url(#wg-${id}-${wall.name})`);
-          child.setAttribute('fill-opacity', `${wall.humidity / 30}`);
-        }
+        // for (const child of wallElement.children) { TODO: No idea what was the point of this
+        colorWall(id, container, { name: wallRainbow.colorAt(wall.humidity), value: 0 }, wall);
+        wallElement.setAttribute('fill', `url(#wg-${id}-${wall.name})`);
+        wallElement.setAttribute('fill-opacity', `${wall.humidity / 50}`);
+        // }
       }
     });
   if (roomsToRedraw.length === 0 && wallsToRedraw.length === 0) {

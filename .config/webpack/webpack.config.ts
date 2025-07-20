@@ -13,8 +13,8 @@ import path from 'path';
 import ReplaceInFileWebpackPlugin from 'replace-in-file-webpack-plugin';
 import { Configuration } from 'webpack';
 
-import { getPackageJson, getPluginJson, hasReadme, getEntries, isWSL } from './utils';
-import { SOURCE_DIR, DIST_DIR } from './constants';
+import { getPackageJson, getPluginJson, hasReadme, getEntries, isWSL } from './utils.ts';
+import { SOURCE_DIR, DIST_DIR } from './constants.ts';
 
 const pluginJson = getPluginJson();
 
